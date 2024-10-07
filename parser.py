@@ -1,10 +1,8 @@
-from examples.example_alternative import trans_str, vars
-
-trans_str = trans_str.replace('\n', '')
-trans = trans_str.split(';')
-trans.pop()
-
-#print(trans)
+def parse_trans_str(t):
+    trans_str = t.replace('\n', '')
+    trans = trans_str.split(';')
+    trans.pop()
+    return trans
 
 def qlearning_parser(transitions, curr_vars):
     options = []
@@ -21,8 +19,6 @@ def qlearning_parser(transitions, curr_vars):
 
     return options
 
-parser_res = qlearning_parser(trans, curr_vars=vars)
-
 def get_states(transitions):
     states = []
     for t in transitions:
@@ -34,7 +30,8 @@ def get_states(transitions):
         for pred in sets[0].split(" ^ "):
             state.append(pred)
         
-        states.append(state)
+        if not state in states: states.append(state)
+    return states
 
 def get_actions(transitions):
     actions = []
@@ -45,7 +42,4 @@ def get_actions(transitions):
         # Sets[0] sera los predicados
         action_div = sets[1].split("!")
         if len(action_div) > 1 and not action_div[-1] in actions: actions.append(action_div[-1])
-        
-
-get_states(transitions=trans)
-get_actions(transitions=trans)
+    return actions
