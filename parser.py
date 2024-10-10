@@ -43,3 +43,26 @@ def get_actions(transitions):
         action_div = sets[1].split("!")
         if len(action_div) > 1 and not action_div[-1] in actions: actions.append(action_div[-1])
     return actions
+
+
+def parse_transition(transition):
+    parts = transition.split('!')
+
+    # Si no hay acción (es un estado final), retornamos la transición sin acción
+    if len(parts) == 1:
+        transition = parts[0].strip()
+        return [transition], None  # No hay acción asociada
+
+    state_changes = parts[0].strip()
+    action = parts[1].strip()
+
+    # Las probabilidades y nuevos estados están antes de la acción (!)
+    changes_with_probs = state_changes.split()
+    
+    # Parsear cada cambio de estado con su probabilidad
+    transitions = []
+    for change in changes_with_probs:
+        prob, state_change = change.split(':')
+        transitions.append((float(prob), state_change))
+    
+    return transitions, action

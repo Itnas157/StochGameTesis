@@ -45,3 +45,28 @@ def get_all_states(transitions, init_vars):
         all_states.append(state)
 
     return all_states
+
+def update_state(assigns, state):
+    """
+    Actualiza el estado actual en función de las asignaciones dadas.
+    
+    Parameters:
+    assigns (list): Lista de asignaciones con el formato "var=value" para actualizar.
+    state (list): Estado actual, que también tiene el formato "var=value".
+    
+    Returns:
+    list: Estado actualizado.
+    """
+    # Convertir el estado en un diccionario para facilitar la actualización
+    state_dict = {var.split('=')[0]: var.split('=')[1] for var in state}
+    
+    # Actualizar las variables del estado con las nuevas asignaciones
+    for assign in assigns:
+        var, value = assign.split('=')
+        if var in state_dict:
+            state_dict[var] = value  # Actualiza el valor de la variable
+    
+    # Convertir el diccionario de nuevo en el formato "var=value"
+    updated_state = [f"{var}={value}" for var, value in state_dict.items()]
+    
+    return updated_state
