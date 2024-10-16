@@ -4,9 +4,9 @@ import random
 # Parámetros Q-learning
 alpha = 0.1  # Tasa de aprendizaje
 gamma = 0.9  # Factor de descuento
-epsilon = 0.1  # Probabilidad de exploración inicial
+epsilon = 0.9  # Probabilidad de exploración inicial
 min_epsilon = 0.01  # Valor mínimo de epsilon
-epsilon_decay = 0.995  # Tasa de decrecimiento de epsilon
+epsilon_decay = 0.0001  # Tasa de decrecimiento de epsilon
 
 # Inicializar la tabla Q
 
@@ -36,7 +36,7 @@ class Q_table:
     def q_iteration(self):
         self.i += 1
         # Decrecer epsilon después de cada iteración para reducir la exploración a medida que el agente aprende
-        self.epsilon = max(min_epsilon, self.epsilon * epsilon_decay)
+        self.epsilon = max(min_epsilon, self.epsilon - epsilon_decay)
 
     def get_iteration(self) -> int:
         return self.i
@@ -50,7 +50,7 @@ class Q_table:
         max_next_value = max(next_action_values) if next_action_values else 0
 
         # Actualización de la tabla Q
-        self.q_table[i]["value"] = (1 - alpha) * self.q_table[i]["value"] + alpha * (reward + gamma * max_next_value)
+        self.q_table[i]["value"] = ((1 - alpha) * self.q_table[i]["value"]) + (alpha * (reward + gamma * max_next_value))
 
     def choose_action(self, state, actions):
         """
@@ -77,4 +77,5 @@ class Q_table:
         """
         print("Tabla Q:")
         for entry in self.q_table:
-            print(f"Estado: {entry['vars']}, Acción: {entry['act']}, Valor: {entry['value']:.2f}")
+            if entry['value'] != 0:
+                print(f"Estado: {entry['vars']}, Acción: {entry['act']}, Valor: {entry['value']:.2f}")

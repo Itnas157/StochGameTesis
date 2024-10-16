@@ -57,6 +57,7 @@ def update_state(assigns, state):
     Returns:
     list: Estado actualizado.
     """
+
     # Convertir el estado en un diccionario para facilitar la actualización
     state_dict = {var.split('=')[0]: var.split('=')[1] for var in state}
     

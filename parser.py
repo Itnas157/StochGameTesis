@@ -51,7 +51,7 @@ def parse_transition(transition):
     # Si no hay acción (es un estado final), retornamos la transición sin acción
     if len(parts) == 1:
         transition = parts[0].strip()
-        return [transition], None  # No hay acción asociada
+        return [(-1.0, transition)], None  # No hay acción asociada
 
     state_changes = parts[0].strip()
     action = parts[1].strip()
