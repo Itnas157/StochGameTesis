@@ -1,10 +1,10 @@
 import hashlib
 
-
 class Transformer:
     def __init__(self) -> None:
         self.state_max_val = {}
         self.max_z = -1
+        self.zs= []
 
     def calculate_state_max_val(self, transitions):
         """
@@ -52,13 +52,14 @@ class Transformer:
     
     def set_max_z(self, z):
         self.max_z = z
+        self.zs = [i for i in range(z)]
     
-    def hash(self, state_bin, z):
+    def hash(self, state, z):
         """
         Genera un número 'aleatorio' determinístico basado en el estado y z.
 
         Args:
-            state_bin (str): Estado representado en binario (por ejemplo, 10001).
+            state: Estado.
             z (int): Valor de z.
 
         Returns:
@@ -69,7 +70,7 @@ class Transformer:
         z_bin = format(z, f'0{self.max_z.bit_length()}b')
         
         # Concatenar state_bin y z_bin
-        combined = state_bin + z_bin
+        combined = self.state_to_bin(state) + z_bin
         
         # Usar hashlib para generar un hash determinístico
         hash_object = hashlib.sha256(combined.encode())  # Genera un hash SHA-256
@@ -77,40 +78,10 @@ class Transformer:
         
         # Retornar el hash como entero
         return hash_value
+    
+    def choose_action(self, hash_value, actions):
+        """
+        Elige la accion en base al hash_value
+        """
+        return actions[hash_value % len(actions)]
 
-# Ejemplo de uso
-transitions = [
-    ['t=0', 'x=0', 'y=0'], ['t=0', 'x=0', 'y=1'], ['t=0', 'x=0', 'y=2'],
-    ['t=0', 'x=1', 'y=0'], ['t=0', 'x=1', 'y=1'], ['t=0', 'x=1', 'y=2'],
-    ['t=0', 'x=2', 'y=0'], ['t=0', 'x=2', 'y=1'], ['t=0', 'x=2', 'y=2'],
-    ['t=1', 'x=0', 'y=0'], ['t=1', 'x=0', 'y=1'], ['t=1', 'x=0', 'y=2'],
-    ['t=1', 'x=1', 'y=0'], ['t=1', 'x=0', 'y=1'], ['t=1', 'x=1', 'y=2'],
-    ['t=1', 'x=2', 'y=0'], ['t=1', 'x=2', 'y=1'], ['t=1', 'x=2', 'y=2']
-]
-
-transformer = Transformer()
-transformer.calculate_state_max_val(transitions)
-
-# Configurar el máximo z
-transformer.set_max_z(1000)
-
-z = 0
-hash_value = 0
-veces_0 = 0
-veces_1 = 0
-veces_2 = 0
-veces_3 = 0
-
-for t in transitions:
-    state_bin = transformer.state_to_bin(t)
-    for z in range(1000):
-        hash_value = transformer.hash(state_bin, z)
-        if hash_value % 4 == 0: veces_0 +=1
-        elif hash_value % 4 == 1: veces_1 += 1
-        elif hash_value % 4 == 2: veces_2 += 1
-        else: veces_3 += 1
-
-print('Veces 0: ', veces_0)
-print('Veces 1: ', veces_1)
-print('Veces 2: ', veces_2)
-print('Veces 3: ', veces_3)
