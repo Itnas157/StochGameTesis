@@ -20,85 +20,80 @@ smartsampling.calculate_state_max_val(states)
 
 
 for z in smartsampling.zs:
-
-    #print("Estado:", vars)
-    
-    # Obtener las opciones de transición basadas en el estado actual
-    options = qlearning_parser(transitions=trans_raw, curr_vars=vars)
-
-    # Si no hay opciones disponibles, estamos en un estado terminal
-    if not options:
-        print("Estado terminal alcanzado. No hay más opciones.")
-        break
-
-    print(options)
-    hash_value = smartsampling.hash(vars, z)
-
-    action = smartsampling.choose_action(hash_value, actions)
-    """
-    #print("Opciones disponibles:", options)
-
-    #print("Accion elegida: ", action)
-
-    for opt in options:
-        transition, act = parse_transition(opt)
-        if action == act or act is None:
-            trans = trans + transition
-            break
-    
-    #print("Transición disponible:", trans)
-
-    # Inicializamos las variables de siguiente estado y recompensa
-    next_state = None
     reward = 0
-    cumulative_prob = 0
-    rand_val = random.random()  # Valor aleatorio para decidir el cambio de estado
-    #print("Rand:", rand_val)
+    i = 0
+    vars = init_vars
 
-    # Procesamos las transiciones
-    for prob, state_change in trans:
-        cumulative_prob += prob
+    while reward == 0 and i < 1000:
+        #print("Estado:", vars)
+        
+        # Obtener las opciones de transición basadas en el estado actual
+        options = qlearning_parser(transitions=trans_raw, curr_vars=vars)
 
-        if rand_val <= cumulative_prob:
-            # Dividimos el estado por comas, ya que puede haber múltiples variables, y chequeamos por recompensa
-            state_parts = state_change.split(',')
+        # Si no hay opciones disponibles, estamos en un estado terminal
+        if not options:
+            print("Estado terminal alcanzado. No hay más opciones.")
+            break
 
-            # Verificamos si hay una recompensa en la transición
-            for part in state_parts:
-                if "_R_=" in part:
-                    reward = float(part.split('=')[1])  # Extraemos la recompensa
-                    next_state = None
-                else:
-                    if next_state is None:
-                        next_state = [part]  # Inicializamos el siguiente estado con la primera variable
+        #print("Opciones disponibles:", options)
+
+        trans = {}
+        for opt in options:
+            transition, act = parse_transition(opt) # TODO: No soporta act is None
+            trans[act] = transition
+
+        #print("Transición disponible:", trans)
+
+        hash_value = smartsampling.hash(vars, z)
+        action = smartsampling.choose_action(hash_value, actions)
+
+        #print("Accion elegida: ", action)
+
+        #print("Elección:", trans[action])
+
+        
+
+        # Inicializamos las variables de siguiente estado y recompensa
+        next_state = None
+        cumulative_prob = 0
+        rand_val = random.random()  # Valor aleatorio para decidir el cambio de estado
+        #print("Rand:", rand_val)
+
+        # Procesamos las transiciones
+        for prob, state_change in trans[action]:
+            cumulative_prob += prob
+
+            if rand_val <= cumulative_prob:
+                # Dividimos el estado por comas, ya que puede haber múltiples variables, y chequeamos por recompensa
+                state_parts = state_change.split(',')
+
+                # Verificamos si hay una recompensa en la transición
+                for part in state_parts:
+                    if "_R_=" in part:
+                        reward = float(part.split('=')[1])  # Extraemos la recompensa
+                        next_state = None
                     else:
-                        next_state.append(part)  # Añadimos las variables al siguiente estado
-            
-            break  # Salimos del loop cuando encontramos la transición adecuada
+                        if next_state is None:
+                            next_state = [part]  # Inicializamos el siguiente estado con la primera variable
+                        else:
+                            next_state.append(part)  # Añadimos las variables al siguiente estado
+                
+                break  # Salimos del loop cuando encontramos la transición adecuada
 
-    #print(next_state, vars)
+        #print(next_state, vars)
+        
+
+        if next_state:
+            vars = update_state(next_state, vars)
+            #print("Siguiente estado seleccionado:", next_state)
+        else:
+            vars = init_vars
+        
+        i += 1
     
-    if next_state:
-        next_state = update_state(next_state, vars)
-        #print("Siguiente estado seleccionado:", next_state)
-    #else:
-        #print(f"Recompensa obtenida: {reward}")
-    
-    # Actualizamos la tabla Q
-    q.update_column(vars, action, next_state or vars, reward)
-    
-    # Mover al siguiente estado solo si no es una recompensa final
-    if next_state:
-        vars = next_state
-    else:
-        vars = init_vars
-
-    # Incrementar el número de iteración y reducir epsilon
-    q.q_iteration()
-
-q.display_q_table()
+    print("Z:", z, ": Recompensa obtenida:", reward)
 
 
 
 
-"""
+
