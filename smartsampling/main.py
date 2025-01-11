@@ -54,6 +54,9 @@ class Transformer:
         self.max_z = z
         self.zs = [i for i in range(z)]
     
+    def update_zs(self, z_keys):
+        self.zs = z_keys + z_keys
+
     def hash(self, state, z):
         """
         Genera un número 'aleatorio' determinístico basado en el estado y z.

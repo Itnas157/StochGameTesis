@@ -18,82 +18,90 @@ states = get_all_states(transitions=states, init_vars=init_vars)
 smartsampling.set_max_z(1000)
 smartsampling.calculate_state_max_val(states)
 
+for _ in range(100):
+    z_reward = []
+    for z in smartsampling.zs:
+        reward = 0
+        i = 0
+        vars = init_vars
 
-for z in smartsampling.zs:
-    reward = 0
-    i = 0
-    vars = init_vars
+        while reward == 0 and i < 1000:
+            #print("Estado:", vars)
+            
+            # Obtener las opciones de transición basadas en el estado actual
+            options = qlearning_parser(transitions=trans_raw, curr_vars=vars)
 
-    while reward == 0 and i < 1000:
-        #print("Estado:", vars)
-        
-        # Obtener las opciones de transición basadas en el estado actual
-        options = qlearning_parser(transitions=trans_raw, curr_vars=vars)
+            # Si no hay opciones disponibles, estamos en un estado terminal
+            if not options:
+                print("Estado terminal alcanzado. No hay más opciones.")
+                break
 
-        # Si no hay opciones disponibles, estamos en un estado terminal
-        if not options:
-            print("Estado terminal alcanzado. No hay más opciones.")
-            break
+            #print("Opciones disponibles:", options)
 
-        #print("Opciones disponibles:", options)
+            trans = {}
+            for opt in options:
+                transition, act = parse_transition(opt) # TODO: No soporta act is None
+                trans[act] = transition
 
-        trans = {}
-        for opt in options:
-            transition, act = parse_transition(opt) # TODO: No soporta act is None
-            trans[act] = transition
+            #print("Transición disponible:", trans)
 
-        #print("Transición disponible:", trans)
+            hash_value = smartsampling.hash(vars, z)
+            action = smartsampling.choose_action(hash_value, actions)
 
-        hash_value = smartsampling.hash(vars, z)
-        action = smartsampling.choose_action(hash_value, actions)
+            #print("Accion elegida: ", action)
 
-        #print("Accion elegida: ", action)
+            #print("Elección:", trans[action])
 
-        #print("Elección:", trans[action])
+            
 
-        
+            # Inicializamos las variables de siguiente estado y recompensa
+            next_state = None
+            cumulative_prob = 0
+            rand_val = random.random()  # Valor aleatorio para decidir el cambio de estado
+            #print("Rand:", rand_val)
 
-        # Inicializamos las variables de siguiente estado y recompensa
-        next_state = None
-        cumulative_prob = 0
-        rand_val = random.random()  # Valor aleatorio para decidir el cambio de estado
-        #print("Rand:", rand_val)
+            # Procesamos las transiciones
+            for prob, state_change in trans[action]:
+                cumulative_prob += prob
 
-        # Procesamos las transiciones
-        for prob, state_change in trans[action]:
-            cumulative_prob += prob
+                if rand_val <= cumulative_prob:
+                    # Dividimos el estado por comas, ya que puede haber múltiples variables, y chequeamos por recompensa
+                    state_parts = state_change.split(',')
 
-            if rand_val <= cumulative_prob:
-                # Dividimos el estado por comas, ya que puede haber múltiples variables, y chequeamos por recompensa
-                state_parts = state_change.split(',')
-
-                # Verificamos si hay una recompensa en la transición
-                for part in state_parts:
-                    if "_R_=" in part:
-                        reward = float(part.split('=')[1])  # Extraemos la recompensa
-                        next_state = None
-                    else:
-                        if next_state is None:
-                            next_state = [part]  # Inicializamos el siguiente estado con la primera variable
+                    # Verificamos si hay una recompensa en la transición
+                    for part in state_parts:
+                        if "_R_=" in part:
+                            reward = float(part.split('=')[1])  # Extraemos la recompensa
+                            next_state = None
                         else:
-                            next_state.append(part)  # Añadimos las variables al siguiente estado
-                
-                break  # Salimos del loop cuando encontramos la transición adecuada
+                            if next_state is None:
+                                next_state = [part]  # Inicializamos el siguiente estado con la primera variable
+                            else:
+                                next_state.append(part)  # Añadimos las variables al siguiente estado
+                    
+                    break  # Salimos del loop cuando encontramos la transición adecuada
 
-        #print(next_state, vars)
+            #print(next_state, vars)
+            
+
+            if next_state:
+                vars = update_state(next_state, vars)
+                #print("Siguiente estado seleccionado:", next_state)
+            else:
+                vars = init_vars
+            
+            i += 1
         
+        #print("Z:", z, ": Recompensa obtenida:", reward)
+        z_reward.append({'z': z, 'r': reward})
 
-        if next_state:
-            vars = update_state(next_state, vars)
-            #print("Siguiente estado seleccionado:", next_state)
-        else:
-            vars = init_vars
-        
-        i += 1
-    
-    print("Z:", z, ": Recompensa obtenida:", reward)
+    random.shuffle(z_reward)
+    z_reward = sorted(z_reward, key=lambda x: x['r'], reverse=True)
+    z_reward = z_reward[:500]
 
-
+    z_keys = [z['z'] for z in z_reward]
+    smartsampling.update_zs(z_keys)
+print(smartsampling.zs)
 
 
 
