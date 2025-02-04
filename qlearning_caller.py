@@ -1,8 +1,8 @@
 import random
 
 from qlearning.main import Q_table
-from examples.example_alternative import init_vars, trans_str
-from parser import get_states, get_actions, parse_trans_str, qlearning_parser, parse_transition
+from examples.example_coins_flipper import init_vars, trans_str
+from parser import get_states, get_actions, parse_trans_str, qlearning_parser, parse_transition, parse_assign
 from utils import get_all_states, update_state
 
 trans_raw = parse_trans_str(trans_str)
@@ -20,8 +20,9 @@ for s in states:
     for a in actions:
         q.set_column(s, a, 0)
 
+print("Q-table creada")
 
-for _ in range(10000):
+for _ in range(100000):
     #print("Estado:", vars)
     
     # Obtener las opciones de transición basadas en el estado actual
@@ -69,9 +70,9 @@ for _ in range(10000):
                     next_state = None
                 else:
                     if next_state is None:
-                        next_state = [part]  # Inicializamos el siguiente estado con la primera variable
+                        next_state = [parse_assign(part, vars)]  # Inicializamos el siguiente estado con la primera variable
                     else:
-                        next_state.append(part)  # Añadimos las variables al siguiente estado
+                        next_state.append(parse_assign(part, vars))  # Añadimos las variables al siguiente estado
             
             break  # Salimos del loop cuando encontramos la transición adecuada
 

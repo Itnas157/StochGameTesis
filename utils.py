@@ -1,4 +1,5 @@
 import itertools
+import re
 
 
 def get_vars_names(vars):
@@ -20,10 +21,10 @@ def get_var_values(transitions, var_name):
     for t in transitions:
         # Consideramos tanto las asignaciones en la parte de la izquierda como en la derecha
         for assignment in t:
-            assert("=" in assignment)
-            var, value = assignment.split("=")
-            if var == var_name:
-                values.add(value)
+            if "=" in assignment:
+                var, value = assignment.split("=")
+                if var == var_name:
+                    values.add(value)
     return sorted(values)  # Ordenar para consistencia
 
 def get_all_states(transitions, init_vars):
