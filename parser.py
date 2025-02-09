@@ -53,33 +53,62 @@ def expand_ranges(predicate):
     var, value = predicate.split("=")
     return [(var, [value])]
 
-def get_states(transitions):
+
+
+def from_assign_get_var(assign):
+    split = assign.split("=")
+    assert(len(split) == 2)
+    
+    assigning = split[1]
+    if "|...|" in assigning:
+        spl = assigning.split("|...|")
+        return split[0], [str(i) for i in range(int(spl[0]), int(spl[1]) + 1)]
+    elif "|" in assigning:
+        spl = assigning.split("|")
+        return split[0], spl
+
+    return split[0], [split[1]]
+
+def get_states(non_final_states, final_states, init_vars):
     """
-    Obtiene todos los estados únicos a partir de las transiciones.
+    Obtiene todos los estados a partir de las transiciones.
     Soporta expresiones con rangos (e.g., x=0|...|14) y múltiples valores (e.g., ac=5|10).
     """
-    states = []
+    vars_values = {}
     
-    for t in transitions:
-        sets = t.split(" -> ")
-        if len(sets) != 2:
-            continue  # Ignoramos transiciones mal formadas
+    for v in init_vars:
+        var_name, var_values = from_assign_get_var(v)
+        vars_values[var_name] = var_values
+
+    for t in final_states:
+        condition = t.split(" -> ")[0]
+        condition = condition.replace("qf: ", "")
+        conditions = condition.split(" ^ ")
         
-        predicates = sets[0].split(" ^ ")
-        expanded_predicates = {}
+        for c in conditions:
+            var, values = from_assign_get_var(c)
+            vars_values[var] = vars_values[var] + [values for values in values if values not in vars_values[var]]
+    
+    for t in non_final_states:
+        condition = t.split(" -> ")[0]
+        conditions = condition.split(" ^ ")
 
-        for pred in predicates:
-            for var, values in expand_ranges(pred):
-                expanded_predicates[var] = values
+        for c in conditions:
+            var, values = from_assign_get_var(c)
+            vars_values[var] = vars_values[var] + [values for values in values if values not in vars_values[var]]   
+        
+    print(vars_values)
 
-        # Generamos todas las combinaciones de valores usando product()
-        keys = list(expanded_predicates.keys())
-        values_combinations = product(*expanded_predicates.values())
+    # Generar todas las combinaciones posibles de valores para cada variable
 
-        for combination in values_combinations:
-            state = [f"{keys[i]}={combination[i]}" for i in range(len(keys))]
-            states.append(state)
+    all_combinations = list(product(*vars_values.values()))  # Genera las combinaciones
 
+    # Convertir las combinaciones en estados con el formato "var=value"
+    states = []
+    for combination in all_combinations:
+        state = [f"{list(vars_values.keys())[i]}={combination[i]}" for i in range(len(combination))]
+        states.append(state)
+    
     return states
 
 
@@ -149,3 +178,32 @@ def parse_assign(expresion, vars):
 
     # Devolver la asignación con el cálculo resuelto
     return f"{left}={right_value}"
+
+
+
+
+###### DEFINITIVE:
+
+class Parser:
+    def __init__(self, example, init_vars):
+        # Example sin parsear
+        self.example = example
+
+        # Variables iniciales
+        self.init_vars = init_vars
+
+        # Nombres de variables
+        self.var_names = [var.split("=")[0] for var in init_vars]
+
+        # Estados finales
+        example_no_comments = example.split('\n')
+        example_no_comments = [tr for tr in example_no_comments if not tr.startswith("--") and tr.strip()]
+
+        self.final_states = [tr for tr in example_no_comments if tr.startswith("qf: ")]
+
+        # Estados no finales
+        self.non_final_states = [tr for tr in example_no_comments if not tr.startswith("qf: ")]
+
+        # Todos los estados
+        self.all_combinations = get_states(self.non_final_states, self.final_states, self.init_vars)
+        print(len(self.all_combinations), " estados generados.")

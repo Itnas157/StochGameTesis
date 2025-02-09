@@ -1,7 +1,7 @@
 import random
 
 from qlearning.main import Q_table
-from examples.example_coins_flipper import init_vars, trans_str
+from examples.example_race import init_vars, trans_str
 from parser import get_states, get_actions, parse_trans_str, qlearning_parser, parse_transition, parse_assign
 from utils import get_all_states, update_state
 
