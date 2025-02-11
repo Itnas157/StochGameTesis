@@ -3,6 +3,33 @@ def parse_trans_str(t):
     trans = [tr for tr in trans if not tr.startswith("--") and tr.strip()]
     return trans
 
+def final_states_reward(transitions, curr_vars):
+    options = []
+    state = {}
+
+    for v in curr_vars:
+        dupla = v.split("=")
+        assert(len(dupla) == 2)
+        state[dupla[0]] = dupla[1]
+
+    for t in transitions:
+        sets = t.split(" -> ")
+        assert(len(sets) == 2)
+
+        sets[0] = sets[0].replace("qf: ", "")
+        predicates = sets[0].split(" ^ ")
+        expanded_predicates = {}
+
+        for pred in predicates:
+            for var, values in expand_ranges(pred):
+                expanded_predicates[var] = values
+
+        # Validar si el estado actual cumple con todos los predicados
+        if all(var in state and state[var] in valid_values for var, valid_values in expanded_predicates.items()):
+            options.append(sets[1])
+    
+    assert len(options) == 1 or len(options) == 0
+    return options[0] if options else None
 
 def qlearning_parser(transitions, curr_vars):
     """
@@ -35,6 +62,7 @@ def qlearning_parser(transitions, curr_vars):
     return options
 
 
+import random
 import re
 from itertools import product
 
@@ -168,7 +196,7 @@ def parse_assign(expresion, vars):
     # Reemplazar las variables en el lado derecho con sus valores
     for var in variables:
         if var in var_dict:
-            right = right.replace(var, var_dict[var])
+            right = re.sub(r'\b' + var + r'\b', var_dict[var], right)
 
     # Evaluar la expresión matemática del lado derecho
     try:
@@ -179,6 +207,26 @@ def parse_assign(expresion, vars):
     # Devolver la asignación con el cálculo resuelto
     return f"{left}={right_value}"
 
+def chose_action(curr_vars, action, non_final_states):
+    """
+    Elige una acción y actualiza las variables actuales.
+    """
+    for t in non_final_states:
+        sets = t.split(" -> ")
+        assert(len(sets) == 2)
+
+        # Sets[0] sera los predicados
+        action_div = sets[1].split("!!!")
+        if action_div[-1] == action:
+            state_changes = action_div[0].strip(" | ")
+            changes_with_probs = state_changes.split()
+
+            for change in changes_with_probs:
+                prob, state_change = change.split(': ')
+                if all(var in state_change for var in curr_vars):
+                    return state_change
+
+    return None
 
 
 
@@ -191,6 +239,9 @@ class Parser:
 
         # Variables iniciales
         self.init_vars = init_vars
+
+        # Variables actuales
+        self.current_vars = init_vars
 
         # Nombres de variables
         self.var_names = [var.split("=")[0] for var in init_vars]
@@ -207,3 +258,42 @@ class Parser:
         # Todos los estados
         self.all_combinations = get_states(self.non_final_states, self.final_states, self.init_vars)
         print(len(self.all_combinations), " estados generados.")
+
+        # Acciones
+        self.actions = get_actions(self.non_final_states)
+
+    def get_combinations(self):
+        return self.all_combinations
+        
+    def get_actions(self):
+        return self.actions
+    
+    def get_options(self, curr_vars):
+        return qlearning_parser(self.non_final_states, curr_vars)
+    
+    def get_vars(self):
+        return self.current_vars
+    
+    def update_vars(self, action, options):
+        for opt in options:
+            split = opt.split(" !!!")
+            assert len(split) == 2
+
+            accumulative_prob = 0
+            rand = random.random()
+            if split[1] == action:
+                for prob in split[0].split(" | "):
+                    if rand < accumulative_prob + float(prob.split(": ")[0]):
+                        for assign in prob.split(": ")[1].split(";"):
+                            new_var = parse_assign(assign, self.current_vars)
+                            self.current_vars = [new_var if var.split("=")[0] == new_var.split("=")[0] else var for var in self.current_vars]
+                        return
+                    else:
+                        accumulative_prob += float(prob.split(": ")[0])
+
+    def get_reward(self):
+        final_states = final_states_reward(self.final_states, self.current_vars)
+        return final_states
+
+    def reset_vars(self):
+        self.current_vars = self.init_vars
