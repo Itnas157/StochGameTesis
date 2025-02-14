@@ -124,9 +124,11 @@ def get_states(non_final_states, final_states, init_vars):
         for c in conditions:
             var, values = from_assign_get_var(c)
             vars_values[var] = vars_values[var] + [values for values in values if values not in vars_values[var]]   
-        
-    print(vars_values)
 
+    return vars_values
+
+def get_comb(non_final_states, final_states, init_vars):
+    vars_values = get_states(non_final_states, final_states, init_vars)
     # Generar todas las combinaciones posibles de valores para cada variable
 
     all_combinations = list(product(*vars_values.values()))  # Genera las combinaciones
@@ -256,8 +258,8 @@ class Parser:
         self.non_final_states = [tr for tr in example_no_comments if not tr.startswith("qf: ")]
 
         # Todos los estados
-        self.all_combinations = get_states(self.non_final_states, self.final_states, self.init_vars)
-        print(len(self.all_combinations), " estados generados.")
+        self.all_combinations = get_comb(self.non_final_states, self.final_states, self.init_vars)
+        print(len(self.all_combinations), "estados generados.")
 
         # Acciones
         self.actions = get_actions(self.non_final_states)
@@ -297,3 +299,9 @@ class Parser:
 
     def reset_vars(self):
         self.current_vars = self.init_vars
+    
+    def get_var(self, var_name):
+        for var in self.current_vars:
+            if var.split("=")[0] == var_name:
+                return var.split("=")[1]
+        return None
