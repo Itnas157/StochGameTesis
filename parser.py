@@ -29,7 +29,7 @@ def final_states_reward(transitions, curr_vars):
             options.append(sets[1])
     
     assert len(options) == 1 or len(options) == 0
-    return options[0] if options else None
+    return options[0] if len(options) > 0 else None
 
 def qlearning_parser(transitions, curr_vars):
     """
@@ -305,3 +305,43 @@ class Parser:
             if var.split("=")[0] == var_name:
                 return var.split("=")[1]
         return None
+    
+
+    def is_final_state(self, state):
+        for t in self.final_states:
+            condition = t.split(" -> ")[0]
+            condition = condition.replace("qf: ", "")
+            conditions = condition.split(" ^ ")
+            
+            checks_all_conditions = True
+
+            for c in conditions:
+                var, values = from_assign_get_var(c)
+                for assign in state:
+                    var2, values2 = from_assign_get_var(assign)
+                    if var == var2 and values2[0] not in values:
+                        checks_all_conditions = False
+            
+            if checks_all_conditions:
+                return True
+
+        return False
+
+
+    def get_all_posibilities(self):
+        all_posibilities = []
+
+        for state in self.all_combinations:
+            if self.is_final_state(state):
+                all_posibilities.append({
+                    'vars': state,
+                    'action': '__None__'
+                })
+            else:
+                for opt in self.get_options(state):
+                    all_posibilities.append({
+                        'vars': state,
+                        'action': opt.split(" !!!")[1]
+                    })
+
+        return all_posibilities

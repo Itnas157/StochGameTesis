@@ -16,17 +16,16 @@ class Q_table:
         self.i = 0
         self.epsilon = epsilon  # Probabilidad de exploración
 
-    def init_q_table(self, states, actions):
+    def init_q_table(self, posibilities):
         """
         Inicializa la tabla Q con valores aleatorios para cada par estado-acción.
         """
-        for state in states:
-            for action in actions:
-                self.q_table.append({
-                    'vars': state,
-                    'act': action,
-                    'value': 0
-                })
+        for poss in posibilities:
+            self.q_table.append({
+                'vars': poss['vars'],
+                'act': poss['action'],
+                'value': 0
+            })
 
     def set_column(self, state, action, value):
         i = self.find_column(state, action)
@@ -89,5 +88,4 @@ class Q_table:
         """
         print("Tabla Q:")
         for entry in self.q_table:
-            if entry['value'] != 0:
-                print(f"Estado: {entry['vars']}, Acción: {entry['act']}, Valor: {entry['value']:.2f}")
+            print(f"Estado: {entry['vars']}, Acción: {entry['act']}, Valor: {entry['value']:.2f}")

@@ -1,4 +1,5 @@
 import hashlib
+import random
 
 class Transformer:
     def __init__(self) -> None:
@@ -87,4 +88,7 @@ class Transformer:
         Elige la accion en base al hash_value
         """
         return actions[hash_value % len(actions)]
+    
+    def get_random_z(self):
+        return random.choice(self.zs)
 
