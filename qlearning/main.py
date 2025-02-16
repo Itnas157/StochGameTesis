@@ -58,7 +58,7 @@ class Q_table:
 
         # Obtener el valor máximo de Q para el siguiente estado
         next_action_values = [entry['value'] for entry in self.q_table if entry['vars'] == next_state]
-        max_next_value = max(next_action_values) if next_action_values else 0
+        max_next_value = max(next_action_values) if next_action_values else -1
 
         # Actualización de la tabla Q
         self.q_table[i]["value"] = ((1 - alpha) * self.q_table[i]["value"]) + (alpha * (reward + gamma * max_next_value))

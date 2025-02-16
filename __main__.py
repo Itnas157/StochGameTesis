@@ -50,11 +50,14 @@ while SMART_SAMPLING_N > 1:
     z_reward = []
 
     for z in SMART_SAMPLING.zs:
+        print(z)
         reward = None
         i = 0
+        parser.reset_vars()
 
         while reward == None and i < 1000:
             reward = parser.get_reward()
+            vars = parser.get_vars()
             if reward is not None:
                 reward = float(reward)
                 break
@@ -62,22 +65,24 @@ while SMART_SAMPLING_N > 1:
                 options = parser.get_options(vars)
                 if parser.get_var("t") == "0":
                     action = Q_TABLE.choose_action(vars, parser.get_actions())
+                    print("En estado ", vars, "Q-learning eligió la acción", action)
                     parser.update_vars(action, options)
                 elif parser.get_var("t") == "1":
                     hash_value = SMART_SAMPLING.hash(vars, z)
                     action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions())
+                    print("En estado ", vars, "SmartSampling eligió la acción", action)
                     parser.update_vars(action, options)
                 else:
                     assert True
             
             i += 1
-        
+        print("Reward:", reward)
+
         if reward == None:
             reward = 1
         
         #print("Z:", z, ": Recompensa obtenida:", reward)
         z_reward.append({'z': z, 'r': reward})
-        print(z_reward[-1])
 
         
     SMART_SAMPLING_N = SMART_SAMPLING_N // 2
