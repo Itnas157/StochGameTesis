@@ -56,7 +56,7 @@ class Transformer:
         self.zs = [i for i in range(z)]
     
     def update_zs(self, z_keys):
-        self.zs = z_keys + z_keys
+        self.zs = z_keys
 
     def hash(self, state, z):
         """

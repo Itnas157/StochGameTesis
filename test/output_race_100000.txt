@@ -1,0 +1,120 @@
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3311 veces
+Smart Sampling ganó 2685 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 575 veces
+Smart Sampling ganó 449 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3279 veces
+Smart Sampling ganó 2726 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 287 veces
+Smart Sampling ganó 225 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3356 veces
+Smart Sampling ganó 2655 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 136 veces
+Smart Sampling ganó 120 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3286 veces
+Smart Sampling ganó 2729 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 68 veces
+Smart Sampling ganó 60 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3368 veces
+Smart Sampling ganó 2635 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 28 veces
+Smart Sampling ganó 36 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3345 veces
+Smart Sampling ganó 2636 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 15 veces
+Smart Sampling ganó 17 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3374 veces
+Smart Sampling ganó 2647 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 8 veces
+Smart Sampling ganó 8 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3431 veces
+Smart Sampling ganó 2643 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 4 veces
+Smart Sampling ganó 4 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3402 veces
+Smart Sampling ganó 2676 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 2 veces
+Smart Sampling ganó 2 veces
+Hubo 0 empates
+
+Q-learning vs Smart Sampling: ronda 1
+Q-LEARNING POST-TRAINING
+Q-learning ganó 3355 veces
+Smart Sampling ganó 2685 veces
+Hubo 0 empates
+
+SMARTSAMPLING POST-TRAINING
+Q-learning ganó 1 veces
+Smart Sampling ganó 1 veces
+Hubo 0 empates
+
+Q-LEARNING vs SMARTSAMPLING
+Smart Sampling fue el último entrenado
+Q-learning ganó 291 veces
+Smart Sampling ganó 209 veces
+Hubo 0 empates
+
+Q-learning fue el último entrenado
+Q-learning ganó 260 veces
+Smart Sampling ganó 240 veces
+Hubo 0 empates

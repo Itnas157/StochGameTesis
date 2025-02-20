@@ -20,6 +20,7 @@ class Q_table:
         """
         Inicializa la tabla Q con valores aleatorios para cada par estado-acción.
         """
+        self.q_table = []
         for poss in posibilities:
             self.q_table.append({
                 'vars': poss['vars'],
