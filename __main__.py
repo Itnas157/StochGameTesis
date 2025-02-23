@@ -1,17 +1,17 @@
 import random
-import examples.example_race as ex_race
+import examples.example_coin_flipper as example
 from parser import Parser
 from qlearning.main import Q_table
 from smartsampling.main import Transformer as SmartSampling
 
-output = 'StochGameTesis/test/output_race.txt'
+output = 'StochGameTesis/test/output_coin_flipper.txt'
 
 SMART_SAMPLING_N = 1024
 Q_TABLE_ITERATIONS = 10000
 Q_TABLE = Q_table()
 SMART_SAMPLING = SmartSampling()
 
-parser = Parser(ex_race.trans_str, ex_race.init_vars)
+parser = Parser(example.trans_str, example.init_vars)
 
 SMART_SAMPLING.set_max_z(SMART_SAMPLING_N)
 SMART_SAMPLING.calculate_state_max_val(parser.get_combinations())
