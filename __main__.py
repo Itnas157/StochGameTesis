@@ -1,12 +1,10 @@
 import random
-import examples.example_coin_flipper as example
+import examples.example_race as example
 from parser import Parser
 from qlearning.main import Q_table
 from smartsampling.main import Transformer as SmartSampling
 
-output = 'StochGameTesis/test/output_coin_flipper.txt'
-
-SMART_SAMPLING_N = 1024
+SMART_SAMPLING_N = 2**10
 Q_TABLE_ITERATIONS = 10000
 Q_TABLE = Q_table()
 SMART_SAMPLING = SmartSampling()
@@ -18,8 +16,16 @@ SMART_SAMPLING.calculate_state_max_val(parser.get_combinations())
 
 END_COMPARATION = 1000
 
+Q_LEARNING_RESET = False
+SMART_SAMPLING_CONSTANT = True
+
+OUTPUT_FILE = 'StochGameTesis/output/race_ft.txt'
+
+
 # Version Q-learning resetea con cada loop de Smart Sampling
 # Version Smart Sampling usa un z aleatorio en cada movimiento de Q-learning
+Q_TABLE.init_q_table(parser.get_all_posibilities())
+
 iterarion = 1
 while SMART_SAMPLING_N > 1:
     result_qlearning = 0
@@ -28,7 +34,10 @@ while SMART_SAMPLING_N > 1:
 
     # Correr Q-learning donde Smart Sampling elige con probabilidad 1/N
     ## Inicializar Q-table
-    Q_TABLE.init_q_table(parser.get_all_posibilities())
+    if Q_LEARNING_RESET:
+        Q_TABLE.init_q_table(parser.get_all_posibilities())
+
+    z = SMART_SAMPLING.get_random_z()
 
     ## Correr Q-learning
     games = 0
@@ -58,7 +67,8 @@ while SMART_SAMPLING_N > 1:
                 parser.update_vars(action, options)
 
             elif parser.get_var("t") == "1":
-                z = SMART_SAMPLING.get_random_z()
+                if not SMART_SAMPLING_CONSTANT:
+                    z = SMART_SAMPLING.get_random_z()
                 hash_value = SMART_SAMPLING.hash(vars, z)
                 action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions())
                 parser.update_vars(action, options)
@@ -70,7 +80,7 @@ while SMART_SAMPLING_N > 1:
         if games > 1024:
             break
 
-    with open(output, 'ab') as f:
+    with open(OUTPUT_FILE, 'ab') as f:
         f.write(f"Q-learning vs Smart Sampling: ronda {iterarion}\n".encode())
         f.write(f"Q-learning post-traning: \n".encode())
         f.write(f"Q-learning: {result_qlearning}, ".encode())
@@ -127,7 +137,7 @@ while SMART_SAMPLING_N > 1:
         else:
             result_draw += 1
 
-    with open(output, 'ab') as f:
+    with open(OUTPUT_FILE, 'ab') as f:
         f.write(f"Smart Sampling post-training:\n".encode())
         f.write(f"Q-learning: {result_qlearning}, ".encode())
         f.write(f"Smart Sampling: {result_smartsampling}, ".encode())
@@ -137,7 +147,7 @@ while SMART_SAMPLING_N > 1:
     # Actualizar Smart Sampling
     ## Ordenamos z_reward por recompensa
     random.shuffle(z_reward)
-    z_reward = sorted(z_reward, key=lambda x: x['r'], reverse=True)
+    z_reward = sorted(z_reward, key=lambda x: x['r'], reverse=False)
     SMART_SAMPLING_N = SMART_SAMPLING_N // 2
     z_reward = z_reward[:SMART_SAMPLING_N]
 
@@ -197,7 +207,7 @@ for i in range(SMART_SAMPLING_ITERATIONS):
     else:
         result_draw += 0
 
-with open(output, 'ab') as f:
+with open(OUTPUT_FILE, 'ab') as f:
     f.write(f"Q-LEARNING vs SMARTSAMPLING\n".encode())
     f.write(f"Smart Sampling fue el último entrenado\n".encode())
     f.write(f"Q-learning ganó {result_qlearning} veces\n".encode())
@@ -275,7 +285,7 @@ for i in range(Q_LEARNING_ITERATIONS):
     else:
         result_draw += 0
 
-with open(output, 'ab') as f:
+with open(OUTPUT_FILE, 'ab') as f:
     f.write(f"Q-learning fue el último entrenado\n".encode())
     f.write(f"Q-learning ganó {result_qlearning} veces\n".encode())
     f.write(f"Smart Sampling ganó {result_smartsampling} veces\n".encode())

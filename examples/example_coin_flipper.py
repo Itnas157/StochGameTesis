@@ -1,4 +1,4 @@
-init_vars = ["t=0", "j1=0", "j2=0", "caras=0", "coins=4"]
+init_vars = ["t=1", "j1=0", "j2=0", "caras=0", "coins=4"]
 trans_str = """
 --Juego de tirar monedas, gana el que llegue a 15 caras primero
 --Se tiran cuatro monedas:
