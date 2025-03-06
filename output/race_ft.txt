@@ -1,70 +1,24 @@
-Q-learning vs Smart Sampling: ronda 1
-Q-learning post-traning: 
-Q-learning: 331, Smart Sampling: 265,Empates: 0
-Smart Sampling post-training:
-Q-learning: 556, Smart Sampling: 468, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 2
-Q-learning post-traning: 
-Q-learning: 301, Smart Sampling: 299,Empates: 0
-Smart Sampling post-training:
-Q-learning: 288, Smart Sampling: 224, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 3
-Q-learning post-traning: 
-Q-learning: 313, Smart Sampling: 303,Empates: 0
-Smart Sampling post-training:
-Q-learning: 146, Smart Sampling: 110, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 4
-Q-learning post-traning: 
-Q-learning: 323, Smart Sampling: 295,Empates: 0
-Smart Sampling post-training:
-Q-learning: 69, Smart Sampling: 59, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 5
-Q-learning post-traning: 
-Q-learning: 311, Smart Sampling: 298,Empates: 0
-Smart Sampling post-training:
-Q-learning: 33, Smart Sampling: 31, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 6
-Q-learning post-traning: 
-Q-learning: 325, Smart Sampling: 262,Empates: 0
-Smart Sampling post-training:
-Q-learning: 23, Smart Sampling: 9, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 7
-Q-learning post-traning: 
-Q-learning: 331, Smart Sampling: 264,Empates: 0
-Smart Sampling post-training:
-Q-learning: 9, Smart Sampling: 7, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 8
-Q-learning post-traning: 
-Q-learning: 312, Smart Sampling: 272,Empates: 0
-Smart Sampling post-training:
-Q-learning: 5, Smart Sampling: 3, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 9
-Q-learning post-traning: 
-Q-learning: 355, Smart Sampling: 253,Empates: 0
-Smart Sampling post-training:
-Q-learning: 1, Smart Sampling: 3, Empates: 0
-
-Q-learning vs Smart Sampling: ronda 10
-Q-learning post-traning: 
-Q-learning: 287, Smart Sampling: 325,Empates: 0
-Smart Sampling post-training:
-Q-learning: 2, Smart Sampling: 0, Empates: 0
-
-Q-LEARNING vs SMARTSAMPLING
-Smart Sampling fue el Ãºltimo entrenado
-Q-learning ganÃ³ 234 veces
-Smart Sampling ganÃ³ 266 veces
-Hubo 0 empates
-
-Q-learning fue el Ãºltimo entrenado
-Q-learning ganÃ³ 246 veces
-Smart Sampling ganÃ³ 254 veces
-Hubo 0 empates
+Q-learning ganó 53.7 veces, SmartSampling ganó 46.3 veces y hubo 0.0 empates.
+Q-learning ganó 55.0 veces, SmartSampling ganó 45.0 veces y hubo 0.0 empates.
+Q-learning ganó 54.3 veces, SmartSampling ganó 45.7 veces y hubo 0.0 empates.
+Q-learning ganó 51.3 veces, SmartSampling ganó 48.7 veces y hubo 0.0 empates.
+Q-learning ganó 55.0 veces, SmartSampling ganó 45.0 veces y hubo 0.0 empates.
+Q-learning ganó 58.4 veces, SmartSampling ganó 41.6 veces y hubo 0.0 empates.
+Q-learning ganó 54.7 veces, SmartSampling ganó 45.3 veces y hubo 0.0 empates.
+Q-learning ganó 50.6 veces, SmartSampling ganó 49.4 veces y hubo 0.0 empates.
+Q-learning ganó 57.8 veces, SmartSampling ganó 42.2 veces y hubo 0.0 empates.
+Q-learning ganó 53.9 veces, SmartSampling ganó 46.1 veces y hubo 0.0 empates.
+Q-learning ganó 59.1 veces, SmartSampling ganó 40.9 veces y hubo 0.0 empates.
+Q-learning ganó 50.6 veces, SmartSampling ganó 49.4 veces y hubo 0.0 empates.
+Q-learning ganó 53.4 veces, SmartSampling ganó 46.6 veces y hubo 0.0 empates.
+Q-learning ganó 52.2 veces, SmartSampling ganó 47.8 veces y hubo 0.0 empates.
+Q-learning ganó 54.6 veces, SmartSampling ganó 45.4 veces y hubo 0.0 empates.
+Q-learning ganó 54.1 veces, SmartSampling ganó 45.9 veces y hubo 0.0 empates.
+Q-learning ganó 52.0 veces, SmartSampling ganó 48.0 veces y hubo 0.0 empates.
+Q-learning ganó 56.2 veces, SmartSampling ganó 43.8 veces y hubo 0.0 empates.
+Q-learning ganó 55.4 veces, SmartSampling ganó 44.6 veces y hubo 0.0 empates.
+Q-learning ganó 54.3 veces, SmartSampling ganó 45.7 veces y hubo 0.0 empates.
+Entrenamiento terminado. Corriendo 3 juegos de prueba.
+Q-learning ganó 53.9 veces, SmartSampling ganó 46.1 veces y hubo 0.0 empates.
+Q-learning ganó 53.9 veces, SmartSampling ganó 46.1 veces y hubo 0.0 empates.
+Q-learning ganó 55.8 veces, SmartSampling ganó 44.2 veces y hubo 0.0 empates.
