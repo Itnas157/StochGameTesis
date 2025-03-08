@@ -40,14 +40,14 @@ class TrainingOutput:
                 else:
                     options = parser.get_options(vars)
                     if parser.get_var("t") == "0":
-                        action = q_table.choose_action(vars, parser.get_actions())
+                        action = q_table.choose_action(vars, parser.get_actions(options))
                         #print("En estado ", vars, "Q-learning eligió la acción", action)
                         parser.update_vars(action, options)
                     elif parser.get_var("t") == "1":
                         if not ss_contant:
                             z = smartsampling.get_random_z()
                         hash_value = smartsampling.hash(vars, z)
-                        action = smartsampling.choose_action(hash_value, parser.get_actions())
+                        action = smartsampling.choose_action(hash_value, parser.get_actions(options))
                         #print("En estado ", vars, "SmartSampling eligió la acción", action)
                         parser.update_vars(action, options)
                     else:

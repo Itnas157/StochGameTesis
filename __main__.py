@@ -1,5 +1,5 @@
 import random
-import examples.example_coin_flipper as example
+import examples.example_three_line as example
 from parser import Parser
 from qlearning.main import Q_table
 from smartsampling.main import Transformer as SmartSampling
@@ -21,7 +21,7 @@ END_COMPARATION = 1000
 Q_LEARNING_RESET = False
 SMART_SAMPLING_CONSTANT = True
 
-OUTPUT_FILE = 'coin_ft'
+OUTPUT_FILE = 'three_ft'
 OUTPUTTER = TrainingOutput(OUTPUT_FILE)
 
 # Version Q-learning resetea con cada loop de Smart Sampling
@@ -54,14 +54,14 @@ while SMART_SAMPLING_N > 1:
             options = parser.get_options(vars)
 
             if parser.get_var("t") == "0":
-                action = Q_TABLE.choose_action(vars, parser.get_actions())
+                action = Q_TABLE.choose_action(vars, parser.get_actions(options))
                 parser.update_vars(action, options)
 
             elif parser.get_var("t") == "1":
                 if not SMART_SAMPLING_CONSTANT:
                     z = SMART_SAMPLING.get_random_z()
                 hash_value = SMART_SAMPLING.hash(vars, z)
-                action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions())
+                action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions(options))
                 parser.update_vars(action, options)
             
             else:
@@ -93,12 +93,12 @@ while SMART_SAMPLING_N > 1:
             else:
                 options = parser.get_options(vars)
                 if parser.get_var("t") == "0":
-                    action = Q_TABLE.choose_action(vars, parser.get_actions())
+                    action = Q_TABLE.choose_action(vars, parser.get_actions(options))
                     #print("En estado ", vars, "Q-learning eligió la acción", action)
                     parser.update_vars(action, options)
                 elif parser.get_var("t") == "1":
                     hash_value = SMART_SAMPLING.hash(vars, z)
-                    action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions())
+                    action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions(options))
                     #print("En estado ", vars, "SmartSampling eligió la acción", action)
                     parser.update_vars(action, options)
                 else:

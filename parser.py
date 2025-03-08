@@ -28,6 +28,15 @@ def final_states_reward(transitions, curr_vars):
         if all(var in state and state[var] in valid_values for var, valid_values in expanded_predicates.items()):
             options.append(sets[1])
     
+    # Caso de múltiple estados finales
+    if len(options) > 1:
+        if '-1' in options and '1' in options:
+            return 0
+        elif '-1' in options:
+            return -1
+        elif '1' in options:
+            return 1
+
     assert len(options) == 1 or len(options) == 0
     return options[0] if len(options) > 0 else None
 
@@ -267,8 +276,15 @@ class Parser:
     def get_combinations(self):
         return self.all_combinations
         
-    def get_actions(self):
-        return self.actions
+    def get_actions(self, options):
+        actions = []
+        for opt in options:
+            split = opt.split(" !!!")
+            assert len(split) == 2
+
+            if split[1] not in actions:
+                actions.append(split[1])
+        return actions
     
     def get_options(self, curr_vars):
         return qlearning_parser(self.non_final_states, curr_vars)
@@ -288,7 +304,17 @@ class Parser:
                     if rand < accumulative_prob + float(prob.split(": ")[0]):
                         for assign in prob.split(": ")[1].split(";"):
                             new_var = parse_assign(assign, self.current_vars)
-                            self.current_vars = [new_var if var.split("=")[0] == new_var.split("=")[0] else var for var in self.current_vars]
+
+                            new_vars = []
+                            for var in self.current_vars:
+                                if var.split("=")[0] == new_var.split("=")[0]:
+                                    new_vars.append(new_var)
+                                else:
+                                    #print(f"{var} != {new_var}")
+                                    new_vars.append(var)
+
+                            self.current_vars = new_vars
+                            #self.current_vars = [new_var if var.split("=")[0] == new_var.split("=")[0] else var for var in self.current_vars]
                         return
                     else:
                         accumulative_prob += float(prob.split(": ")[0])
