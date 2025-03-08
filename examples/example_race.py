@@ -1,3 +1,4 @@
+name = "race"
 init_vars = ["t=0", "x=0", "y=0"]
 trans_str = """
 --Juego de carrera entre dos jugadores

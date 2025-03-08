@@ -1,24 +1,24 @@
-Q-learning ganó 53.7 veces, SmartSampling ganó 46.3 veces y hubo 0.0 empates.
-Q-learning ganó 55.0 veces, SmartSampling ganó 45.0 veces y hubo 0.0 empates.
-Q-learning ganó 54.3 veces, SmartSampling ganó 45.7 veces y hubo 0.0 empates.
-Q-learning ganó 51.3 veces, SmartSampling ganó 48.7 veces y hubo 0.0 empates.
-Q-learning ganó 55.0 veces, SmartSampling ganó 45.0 veces y hubo 0.0 empates.
-Q-learning ganó 58.4 veces, SmartSampling ganó 41.6 veces y hubo 0.0 empates.
-Q-learning ganó 54.7 veces, SmartSampling ganó 45.3 veces y hubo 0.0 empates.
-Q-learning ganó 50.6 veces, SmartSampling ganó 49.4 veces y hubo 0.0 empates.
-Q-learning ganó 57.8 veces, SmartSampling ganó 42.2 veces y hubo 0.0 empates.
-Q-learning ganó 53.9 veces, SmartSampling ganó 46.1 veces y hubo 0.0 empates.
-Q-learning ganó 59.1 veces, SmartSampling ganó 40.9 veces y hubo 0.0 empates.
-Q-learning ganó 50.6 veces, SmartSampling ganó 49.4 veces y hubo 0.0 empates.
-Q-learning ganó 53.4 veces, SmartSampling ganó 46.6 veces y hubo 0.0 empates.
-Q-learning ganó 52.2 veces, SmartSampling ganó 47.8 veces y hubo 0.0 empates.
-Q-learning ganó 54.6 veces, SmartSampling ganó 45.4 veces y hubo 0.0 empates.
-Q-learning ganó 54.1 veces, SmartSampling ganó 45.9 veces y hubo 0.0 empates.
-Q-learning ganó 52.0 veces, SmartSampling ganó 48.0 veces y hubo 0.0 empates.
-Q-learning ganó 56.2 veces, SmartSampling ganó 43.8 veces y hubo 0.0 empates.
-Q-learning ganó 55.4 veces, SmartSampling ganó 44.6 veces y hubo 0.0 empates.
-Q-learning ganó 54.3 veces, SmartSampling ganó 45.7 veces y hubo 0.0 empates.
+Q-learning: 49.7%, SmartSampling: 50.3% y 0.0% empates.
+Q-learning: 54.3%, SmartSampling: 45.7% y 0.0% empates.
+Q-learning: 50.1%, SmartSampling: 49.9% y 0.0% empates.
+Q-learning: 49.0%, SmartSampling: 51.0% y 0.0% empates.
+Q-learning: 52.0%, SmartSampling: 48.0% y 0.0% empates.
+Q-learning: 50.1%, SmartSampling: 49.9% y 0.0% empates.
+Q-learning: 48.1%, SmartSampling: 51.9% y 0.0% empates.
+Q-learning: 54.8%, SmartSampling: 45.2% y 0.0% empates.
+Q-learning: 48.2%, SmartSampling: 51.8% y 0.0% empates.
+Q-learning: 52.4%, SmartSampling: 47.6% y 0.0% empates.
+Q-learning: 61.0%, SmartSampling: 39.0% y 0.0% empates.
+Q-learning: 52.6%, SmartSampling: 47.4% y 0.0% empates.
+Q-learning: 52.4%, SmartSampling: 47.6% y 0.0% empates.
+Q-learning: 43.5%, SmartSampling: 56.5% y 0.0% empates.
+Q-learning: 51.9%, SmartSampling: 48.1% y 0.0% empates.
+Q-learning: 47.0%, SmartSampling: 53.0% y 0.0% empates.
+Q-learning: 46.1%, SmartSampling: 53.9% y 0.0% empates.
+Q-learning: 43.9%, SmartSampling: 56.1% y 0.0% empates.
+Q-learning: 45.8%, SmartSampling: 54.2% y 0.0% empates.
+Q-learning: 44.5%, SmartSampling: 55.5% y 0.0% empates.
 Entrenamiento terminado. Corriendo 3 juegos de prueba.
-Q-learning ganó 53.9 veces, SmartSampling ganó 46.1 veces y hubo 0.0 empates.
-Q-learning ganó 53.9 veces, SmartSampling ganó 46.1 veces y hubo 0.0 empates.
-Q-learning ganó 55.8 veces, SmartSampling ganó 44.2 veces y hubo 0.0 empates.
+Q-learning: 46.3%, SmartSampling: 53.7% y 0.0% empates.
+Q-learning: 45.8%, SmartSampling: 54.2% y 0.0% empates.
+Q-learning: 45.6%, SmartSampling: 54.4% y 0.0% empates.
