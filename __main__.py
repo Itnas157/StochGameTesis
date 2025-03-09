@@ -13,33 +13,33 @@ from training_output import TrainingOutput
 
 # Parámetros Q-learning
 alphas = [0.01, 0.05, 0.1, 0.2]  # Tasa de aprendizaje
-gammas = [0.8, 0.9, 0.95, 0.99]  # Factor de descuento
+gammas = [0.8, 0.9, 0.95]  # Factor de descuento
 epsilons = [0.5, 0.7, 0.9]  # Probabilidad de exploración inicial
-min_epsilons = [0.001, 0.01, 0.05]  # Valor mínimo de epsilon
+min_epsilons = [0.001, 0.05]  # Valor mínimo de epsilon
 epsilon_decays = [0.0001, 0.0005, 0.001, 0.005]  # Tasa de decrecimiento de epsilon
 
 smart_sampling_ns = [2**8, 2**10, 2**12]
 q_learning_episodes = [1000, 5000, 10**4, 2*10**4]
 
-def run(parser, outputter, q_learning_reset, smart_sampling_constant, ex, alpha, gamma, epsilon, min_epsilon, epsilon_decay, smart_sampling_n, q_learning_episodes):
-    SMART_SAMPLING_N = smart_sampling_n
-    Q_TABLE_ITERATIONS = q_learning_episodes
-    Q_TABLE = Q_table(alpha, gamma, epsilon, min_epsilon, epsilon_decay)
+def run(parser: Parser, outputter: TrainingOutput, data: dict):
+    #print("Empezando entrenamiento"
+
+    SMART_SAMPLING_N = data['smart_sampling_n']
+    Q_TABLE_ITERATIONS = data['q_learning_episodes']
+    Q_TABLE = Q_table(data['alpha'], data['gamma'], data['epsilon'], data['min_epsilon'], data['epsilon_decay'])
     SMART_SAMPLING = SmartSampling()
 
     SMART_SAMPLING.set_max_z(SMART_SAMPLING_N)
     SMART_SAMPLING.calculate_state_max_val(parser.get_combinations())
 
-    OUTPUTTER.print(f"Corriendo con alpha: {alpha}, gamma: {gamma}, epsilon: {epsilon}, min_epsilon: {min_epsilon}, epsilon_decay: {epsilon_decay}, smart_sampling_n: {smart_sampling_n}, q_learning_episodes: {q_learning_episodes}")
+    #OUTPUTTER.print(f"Corriendo con alpha: {alpha}, gamma: {gamma}, epsilon: {epsilon}, min_epsilon: {min_epsilon}, epsilon_decay: {epsilon_decay}, smart_sampling_n: {smart_sampling_n}, q_learning_episodes: {q_learning_episodes}")
 
-    # Version Q-learning resetea con cada loop de Smart Sampling
-    # Version Smart Sampling usa un z aleatorio en cada movimiento de Q-learning
     Q_TABLE.init_q_table(parser.get_all_posibilities())
 
     while SMART_SAMPLING_N > 1:
         # Correr Q-learning donde Smart Sampling elige con probabilidad 1/N
         ## Inicializar Q-table
-        if q_learning_reset:
+        if data['q_learning_reset']:
             Q_TABLE.init_q_table(parser.get_all_posibilities())
 
         z = SMART_SAMPLING.get_random_z()
@@ -63,7 +63,7 @@ def run(parser, outputter, q_learning_reset, smart_sampling_constant, ex, alpha,
                     parser.update_vars(action, options)
 
                 elif parser.get_var("t") == "1":
-                    if not smart_sampling_constant:
+                    if not data['smart_sampling_constant']:
                         z = SMART_SAMPLING.get_random_z()
                     hash_value = SMART_SAMPLING.hash(vars, z)
                     action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions(options))
@@ -108,7 +108,6 @@ def run(parser, outputter, q_learning_reset, smart_sampling_constant, ex, alpha,
                         assert True
                 
                 i += 1
-            #print("Reward:", reward)
 
             if reward == None:
                 reward = 0
@@ -130,22 +129,32 @@ def run(parser, outputter, q_learning_reset, smart_sampling_constant, ex, alpha,
 
         #Q_TABLE.display_q_table()
 
+    assert SMART_SAMPLING_N == 1 and len(SMART_SAMPLING.zs) == 1
+
     #OUTPUTTER.print("Entrenamiento terminado. Corriendo 3 juegos de prueba.")
     #for _ in range(3):
     #   OUTPUTTER.run_test(Q_TABLE, SMART_SAMPLING, parser, smart_sampling_constant)
-    OUTPUTTER.run_test(Q_TABLE, SMART_SAMPLING, parser, smart_sampling_constant)
+    #OUTPUTTER.run_test(Q_TABLE, SMART_SAMPLING, parser, smart_sampling_constant)
 
+    
 
+    #print("Entrenamiento terminado")
+    return outputter.run_test(Q_TABLE, SMART_SAMPLING, parser, data)
+
+complete = 2 * 2 * len(alphas) * len(gammas) * len(epsilons) * len(min_epsilons) * len(epsilon_decays) * len(smart_sampling_ns) * len(q_learning_episodes)
+print("Completitud esperada:", complete)
 
 for ex in [ex_race]:
     print("Corriendo ejemplo", ex.name)
     parser = Parser(ex.trans_str, ex.init_vars)
     OUTPUT_FILE = ex.name
-    OUTPUTTER = TrainingOutput(OUTPUT_FILE)
+    OUTPUTTER = TrainingOutput(OUTPUT_FILE, 1)
+
+    results = OUTPUTTER.load_json()
+    will_test = []
+
     for q_learning_reset in [True, False]:
         for smart_sampling_constant in [True, False]:
-            print("Corriendo con Q-learning reseteado:", q_learning_reset, "y Smart Sampling constante:", smart_sampling_constant)
-            OUTPUTTER.print(f"Corriendo con Q-learning reseteado: {q_learning_reset}, y Smart Sampling constante: {smart_sampling_constant}")
             for alpha in alphas:
                 for gamma in gammas:
                     for epsilon in epsilons:
@@ -153,6 +162,38 @@ for ex in [ex_race]:
                             for epsilon_decay in epsilon_decays:
                                 for smart_sampling_n in smart_sampling_ns:
                                     for q_learning_episode in q_learning_episodes:
-                                        print("Corriendo con alpha:", alpha, "gamma:", gamma, "epsilon:", epsilon, "min_epsilon:", min_epsilon, "epsilon_decay:", epsilon_decay, "smart_sampling_n:", smart_sampling_n, "q_learning_episodes:", q_learning_episodes)
-                                        
-                                        run(parser, OUTPUTTER, q_learning_reset, smart_sampling_constant, ex, alpha, gamma, epsilon, min_epsilon, epsilon_decay, smart_sampling_n, q_learning_episode)
+                                        is_already_tested = False
+
+                                        for r in results:
+                                            if r['alpha'] == alpha and r['gamma'] == gamma and r['epsilon'] == epsilon and r['min_epsilon'] == min_epsilon and r['epsilon_decay'] == epsilon_decay and r['smart_sampling_n'] == smart_sampling_n and r['q_learning_episodes'] == q_learning_episode and r['q_learning_reset'] == q_learning_reset and r['smart_sampling_constant'] == smart_sampling_constant:
+                                                is_already_tested = True
+                                                break
+
+                                        if not is_already_tested:
+
+                                            data = {
+                                                'q_learning_reset': q_learning_reset,
+                                                'smart_sampling_constant': smart_sampling_constant,
+                                                "alpha": alpha,
+                                                "gamma": gamma,
+                                                "epsilon": epsilon,
+                                                "min_epsilon": min_epsilon,
+                                                "epsilon_decay": epsilon_decay,
+                                                "smart_sampling_n": smart_sampling_n,
+                                                "q_learning_episodes": q_learning_episode,
+                                                "q_learning_reset": q_learning_reset,
+                                                "smart_sampling_constant": smart_sampling_constant,
+                                            }
+                                            will_test.append(data)
+
+    print("Necesitamos correr", len(will_test), "tests")
+    i = complete - len(will_test)
+    for data in will_test:
+        data_dump = data.copy()
+        results.append(run(parser, OUTPUTTER, data_dump))
+        OUTPUTTER.save_json(results)
+
+        i += 1
+        print(f"Progreso: {i*100/complete}")
+
+    

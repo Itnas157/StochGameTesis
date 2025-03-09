@@ -1,3 +1,4 @@
+import json
 import os
 
 from parser import Parser
@@ -7,16 +8,19 @@ from smartsampling.main import Transformer as SmartSampling
 OUTPUT_DIR = "output/"
 
 class TrainingOutput:
-    def __init__(self, output_file):
+    def __init__(self, output_file, i):
         # Si el outputfile no existe, crearlo
-        output_file = OUTPUT_DIR + output_file + ".txt"
-        if os.path.exists(output_file):
-            os.remove(output_file)
-        open(output_file, 'a').close()
-        self.output_file = output_file
+        output_f = OUTPUT_DIR + output_file + "_" + str(i) + ".txt"
+        output_json = OUTPUT_DIR + output_file + "_" + str(i) + ".json"
+
+        open(output_f, 'a').close()
+        open(output_json, 'a').close()
+        
+        self.output_file = output_f
+        self.output_json = output_json
     
-    def run_test(self, q_table: Q_table, smartsampling: SmartSampling, parser: Parser, ss_contant: bool):
-        ROUNDS = 5000
+    def run_test(self, q_table: Q_table, smartsampling: SmartSampling, parser: Parser, data: dict):
+        ROUNDS = 100
 
         result_q = 0
         result_ss = 0
@@ -44,7 +48,7 @@ class TrainingOutput:
                         #print("En estado ", vars, "Q-learning eligió la acción", action)
                         parser.update_vars(action, options)
                     elif parser.get_var("t") == "1":
-                        if not ss_contant:
+                        if not data['smart_sampling_constant']:
                             z = smartsampling.get_random_z()
                         hash_value = smartsampling.hash(vars, z)
                         action = smartsampling.choose_action(hash_value, parser.get_actions(options))
@@ -66,6 +70,25 @@ class TrainingOutput:
         with open(self.output_file, 'a') as f:
             f.write(output + "\n")
 
+        data["Q-learning"] = result_q/(ROUNDS//100)
+        data["SmartSampling"] = result_ss/(ROUNDS//100)
+        data["Draw"] = result_draw/(ROUNDS//100)
+
+        return data
+
     def print(self, text: str):
         with open(self.output_file, 'a') as f:
             f.write(text + "\n")
+
+    
+    def load_json(self):
+        with open(self.output_json, 'r') as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return []
+        
+    
+    def save_json(self, data: dict):
+        with open(self.output_json, 'w') as f:
+            json.dump(data, f)

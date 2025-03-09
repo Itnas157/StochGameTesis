@@ -272,6 +272,7 @@ class Parser:
 
         # Acciones
         self.actions = get_actions(self.non_final_states)
+        pass
 
     def get_combinations(self):
         return self.all_combinations
