@@ -16,7 +16,7 @@ class TrainingOutput:
         self.output_file = output_file
     
     def run_test(self, q_table: Q_table, smartsampling: SmartSampling, parser: Parser, ss_contant: bool):
-        ROUNDS = 1000
+        ROUNDS = 5000
 
         result_q = 0
         result_ss = 0
@@ -61,7 +61,7 @@ class TrainingOutput:
             elif reward == -1: result_ss += 1
             else: result_draw += 1
         
-        output = f"Q-learning: {result_q/10}%, SmartSampling: {result_ss/10}% y {result_draw/10}% empates."
+        output = f"Q-learning: {result_q/(ROUNDS//100)}%, SmartSampling: {result_ss/(ROUNDS//100)}% y {result_draw/(ROUNDS//100)}% empates."
 
         with open(self.output_file, 'a') as f:
             f.write(output + "\n")
