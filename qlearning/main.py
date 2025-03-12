@@ -6,17 +6,20 @@ import random
 # Inicializar la tabla Q
 
 class Q_table:
-    def __init__(self, alpha, gamma, epsilon, min_epsilon, epsilon_decay) -> None:
+    def __init__(self, alpha, alpha_decay, gamma, epsilon, min_epsilon, epsilon_decay) -> None:
         self.q_table = []
         self.i = 0
         self.epsilon = epsilon  # Probabilidad de exploración
         self.alpha = alpha
+        self.apha_decay = alpha_decay
+        print(f"Alpha: {alpha}, Decay: {alpha_decay}")
         self.gamma = gamma
         self.min_epsilon = min_epsilon
         self.epsilon_decay = epsilon_decay
+        self.init_state_is = []
 
 
-    def init_q_table(self, posibilities):
+    def init_q_table(self, posibilities, init_states = []):
         """
         Inicializa la tabla Q con valores aleatorios para cada par estado-acción.
         """
@@ -27,17 +30,11 @@ class Q_table:
                 'act': poss['action'],
                 'value': 0
             })
-
-    def set_column(self, state, action, value):
-        i = self.find_column(state, action)
-        if i == -1:
-            self.q_table.append({
-                'vars': state,
-                'act': action,
-                'value': value
-            })
-        else:
-            self.q_table[i]['value'] = value
+        
+        if init_states != []:
+            self.init_state_is = []
+            for init_state in init_states:
+                self.init_state_is.append(self.find_column(init_state['vars'], init_state['action']))
 
     def find_column(self, state, action) -> int:
         for i, entry in enumerate(self.q_table):
@@ -49,6 +46,7 @@ class Q_table:
         self.i += 1
         # Decrecer epsilon después de cada iteración para reducir la exploración a medida que el agente aprende
         self.epsilon = max(self.min_epsilon, self.epsilon - self.epsilon_decay)
+        self.alpha -= self.apha_decay
 
     def get_iteration(self) -> int:
         return self.i
@@ -90,3 +88,9 @@ class Q_table:
         print("Tabla Q:")
         for entry in self.q_table:
             print(f"Estado: {entry['vars']}, Acción: {entry['act']}, Valor: {entry['value']:.2f}")
+
+    def get_status(self):
+        c = 0.0; sum = len(self.init_state_is)
+        for i in self.init_state_is:
+            c += self.q_table[i]['value']
+        return c / sum

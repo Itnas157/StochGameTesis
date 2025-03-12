@@ -325,7 +325,6 @@ class Parser:
         return final_states
 
     def reset_vars(self):
-        self.alternate_turns()
         self.current_vars = self.init_vars
     
     def get_var(self, var_name):
@@ -374,8 +373,13 @@ class Parser:
 
         return all_posibilities
     
-    def alternate_turns(self):
-        if "t=0" in self.init_vars:
-            self.init_vars = [var if var.split("=")[0] != "t" else "t=1" for var in self.init_vars]
-        elif "t=1" in self.init_vars:
-            self.init_vars = [var if var.split("=")[0] != "t" else "t=0" for var in self.init_vars]
+
+    def get_init_states(self):
+        options = self.get_options(self.init_vars)
+        init_states = []
+        for opt in options:
+            init_states.append({
+                'vars': self.init_vars,
+                'action': opt.split(" !!!")[1]
+            })
+        return init_states

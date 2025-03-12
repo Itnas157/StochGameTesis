@@ -1,9 +1,11 @@
+from itertools import product
 import random
 
 import examples.example_coin_flipper as ex_coin_flipper
 import examples.example_dice as ex_dice
 import examples.example_race as ex_race
 import examples.example_three_line as ex_three_line
+import examples.example_basic as ex_basic
 
 from parser import Parser
 from qlearning.main import Q_table
@@ -13,6 +15,7 @@ from training_output import TrainingOutput
 
 # Parámetros Q-learning
 alphas = [0.01, 0.05, 0.1, 0.2]  # Tasa de aprendizaje
+final_alphas_porc = [0.5, 0.1, 0.05, 0.01]
 gammas = [0.8, 0.9, 0.95]  # Factor de descuento
 epsilons = [0.5, 0.7, 0.9]  # Probabilidad de exploración inicial
 min_epsilons = [0.001, 0.05]  # Valor mínimo de epsilon
@@ -26,7 +29,11 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
 
     SMART_SAMPLING_N = data['smart_sampling_n']
     Q_TABLE_ITERATIONS = data['q_learning_episodes']
-    Q_TABLE = Q_table(data['alpha'], data['gamma'], data['epsilon'], data['min_epsilon'], data['epsilon_decay'])
+
+
+    alpha_decay = (data['alpha'] - data['alpha'] * data['final_alpha_porc']) / Q_TABLE_ITERATIONS
+
+    Q_TABLE = Q_table(data['alpha'], alpha_decay, data['gamma'], data['epsilon'], data['min_epsilon'], data['epsilon_decay'])
     SMART_SAMPLING = SmartSampling()
 
     SMART_SAMPLING.set_max_z(SMART_SAMPLING_N)
@@ -34,13 +41,14 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
 
     #OUTPUTTER.print(f"Corriendo con alpha: {alpha}, gamma: {gamma}, epsilon: {epsilon}, min_epsilon: {min_epsilon}, epsilon_decay: {epsilon_decay}, smart_sampling_n: {smart_sampling_n}, q_learning_episodes: {q_learning_episodes}")
 
-    Q_TABLE.init_q_table(parser.get_all_posibilities())
+    Q_TABLE.init_q_table(parser.get_all_posibilities(), parser.get_init_states())
 
     while SMART_SAMPLING_N > 1:
         # Correr Q-learning donde Smart Sampling elige con probabilidad 1/N
         ## Inicializar Q-table
         if data['q_learning_reset']:
             Q_TABLE.init_q_table(parser.get_all_posibilities())
+        Q_TABLE.alpha = data['alpha']
 
         z = SMART_SAMPLING.get_random_z()
 
@@ -75,6 +83,8 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
             Q_TABLE.update_column(vars, action, parser.get_vars(), reward)
 
         # Guardar resultados
+
+        print(Q_TABLE.get_status())
 
         #OUTPUTTER.run_test(Q_TABLE, SMART_SAMPLING, parser, smart_sampling_constant)
 
@@ -144,7 +154,7 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
 complete = 2 * 2 * len(alphas) * len(gammas) * len(epsilons) * len(min_epsilons) * len(epsilon_decays) * len(smart_sampling_ns) * len(q_learning_episodes)
 print("Completitud esperada:", complete)
 
-for ex in [ex_race]:
+for ex in [ex_basic]:
     print("Corriendo ejemplo", ex.name)
     parser = Parser(ex.trans_str, ex.init_vars)
     OUTPUT_FILE = ex.name
@@ -155,36 +165,30 @@ for ex in [ex_race]:
 
     for q_learning_reset in [True, False]:
         for smart_sampling_constant in [True, False]:
-            for alpha in alphas:
-                for gamma in gammas:
-                    for epsilon in epsilons:
-                        for min_epsilon in min_epsilons:
-                            for epsilon_decay in epsilon_decays:
-                                for smart_sampling_n in smart_sampling_ns:
-                                    for q_learning_episode in q_learning_episodes:
-                                        is_already_tested = False
+            for alpha, final_alpha_porc, gamma, epsilon, min_epsilon, epsilon_decay, smart_sampling_n, q_learning_episode in product(alphas, final_alphas_porc,gammas, epsilons, min_epsilons, epsilon_decays, smart_sampling_ns, q_learning_episodes):
+                
+                is_already_tested = False
 
-                                        for r in results:
-                                            if r['alpha'] == alpha and r['gamma'] == gamma and r['epsilon'] == epsilon and r['min_epsilon'] == min_epsilon and r['epsilon_decay'] == epsilon_decay and r['smart_sampling_n'] == smart_sampling_n and r['q_learning_episodes'] == q_learning_episode and r['q_learning_reset'] == q_learning_reset and r['smart_sampling_constant'] == smart_sampling_constant:
-                                                is_already_tested = True
-                                                break
+                for r in results:
+                    if r['alpha'] == alpha and r['final_alpha_porc'] == final_alpha_porc and r['gamma'] == gamma and r['epsilon'] == epsilon and r['min_epsilon'] == min_epsilon and r['epsilon_decay'] == epsilon_decay and r['smart_sampling_n'] == smart_sampling_n and r['q_learning_episodes'] == q_learning_episode and r['q_learning_reset'] == q_learning_reset and r['smart_sampling_constant'] == smart_sampling_constant:
+                        is_already_tested = True
+                        break
 
-                                        if not is_already_tested:
+                if not is_already_tested:
 
-                                            data = {
-                                                'q_learning_reset': q_learning_reset,
-                                                'smart_sampling_constant': smart_sampling_constant,
-                                                "alpha": alpha,
-                                                "gamma": gamma,
-                                                "epsilon": epsilon,
-                                                "min_epsilon": min_epsilon,
-                                                "epsilon_decay": epsilon_decay,
-                                                "smart_sampling_n": smart_sampling_n,
-                                                "q_learning_episodes": q_learning_episode,
-                                                "q_learning_reset": q_learning_reset,
-                                                "smart_sampling_constant": smart_sampling_constant,
-                                            }
-                                            will_test.append(data)
+                    data = {
+                        'q_learning_reset': q_learning_reset,
+                        'smart_sampling_constant': smart_sampling_constant,
+                        "alpha": alpha,
+                        "final_alpha_porc": final_alpha_porc,
+                        "gamma": gamma,
+                        "epsilon": epsilon,
+                        "min_epsilon": min_epsilon,
+                        "epsilon_decay": epsilon_decay,
+                        "smart_sampling_n": smart_sampling_n,
+                        "q_learning_episodes": q_learning_episode
+                    }
+                    will_test.append(data)
 
     print("Necesitamos correr", len(will_test), "tests")
     i = complete - len(will_test)

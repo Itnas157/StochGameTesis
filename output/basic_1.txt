@@ -1,0 +1,6 @@
+Q-learning: 45.0%, SmartSampling: 55.0% y 0.0% empates.
+Q-learning: 27.0%, SmartSampling: 73.0% y 0.0% empates.
+Q-learning: 36.0%, SmartSampling: 64.0% y 0.0% empates.
+Q-learning: 26.0%, SmartSampling: 74.0% y 0.0% empates.
+Q-learning: 22.0%, SmartSampling: 78.0% y 0.0% empates.
+Q-learning: 20.0%, SmartSampling: 80.0% y 0.0% empates.
