@@ -1,4 +1,5 @@
 from itertools import product
+import numpy as np
 import random
 
 import examples.example_coin_flipper as ex_coin_flipper
@@ -9,7 +10,7 @@ import examples.example_basic as ex_basic
 
 from parser import Parser
 from qlearning.main import Q_table
-from smartsampling.main import Transformer as SmartSampling
+from smartsampling.main import state_to_bin, Transformer as SmartSampling 
 from training_output import TrainingOutput
 
 
@@ -37,24 +38,32 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
     SMART_SAMPLING = SmartSampling()
 
     SMART_SAMPLING.set_max_z(SMART_SAMPLING_N)
-    SMART_SAMPLING.calculate_state_max_val(parser.get_combinations())
+    SMART_SAMPLING.set_state_max_val(parser.calculate_state_max_value())
+
+    bins = []
+    for comb in parser.all_combinations:
+        bins.append(state_to_bin(comb, SMART_SAMPLING.state_max_val))
+
+    parser.create_table(bins)
+
 
     #OUTPUTTER.print(f"Corriendo con alpha: {alpha}, gamma: {gamma}, epsilon: {epsilon}, min_epsilon: {min_epsilon}, epsilon_decay: {epsilon_decay}, smart_sampling_n: {smart_sampling_n}, q_learning_episodes: {q_learning_episodes}")
 
-    Q_TABLE.init_q_table(parser.get_all_posibilities(), parser.get_init_states())
+    Q_TABLE.init_q_table(parser.get_table(), parser.index_init)
 
+    print_q = 1000
     while SMART_SAMPLING_N > 1:
         # Correr Q-learning donde Smart Sampling elige con probabilidad 1/N
         ## Inicializar Q-table
         if data['q_learning_reset']:
-            Q_TABLE.init_q_table(parser.get_all_posibilities())
+            Q_TABLE.init_q_table(parser.get_table(), parser.index_init)
         Q_TABLE.alpha = data['alpha']
 
         z = SMART_SAMPLING.get_random_z()
 
         ## Correr Q-learning
         for _ in range(Q_TABLE_ITERATIONS):
-            vars = parser.get_vars()
+            last_index = parser.current_index
             reward = parser.get_reward()
             action = '__None__'
 
@@ -64,27 +73,30 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
                 parser.reset_vars()
             else:
                 reward = 0
-                options = parser.get_options(vars)
+                actions, options = parser.get_options()
 
-                if parser.get_var("t") == "0":
-                    action = Q_TABLE.choose_action(vars, parser.get_actions(options))
+                if parser.get_t() == 0:
+                    action = Q_TABLE.ready(last_index, actions)
                     parser.update_vars(action, options)
 
-                elif parser.get_var("t") == "1":
+                elif parser.get_t() == 1:
                     if not data['smart_sampling_constant']:
                         z = SMART_SAMPLING.get_random_z()
-                    hash_value = SMART_SAMPLING.hash(vars, z)
-                    action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions(options))
+                    hash_value = SMART_SAMPLING.hash(parser.get_bin(), z)
+                    action = SMART_SAMPLING.choose_action(hash_value, actions)
                     parser.update_vars(action, options)
                 
                 else:
                     assert True
                     
-            Q_TABLE.update_column(vars, action, parser.get_vars(), reward)
+            Q_TABLE.update_column(last_index, action, parser.current_index, reward)
+            if Q_TABLE.get_iteration() == print_q:
+                print_q += 1000
+                Q_TABLE.convergence(parser.index_init)
+                
 
         # Guardar resultados
 
-        print(Q_TABLE.get_status())
 
         #OUTPUTTER.run_test(Q_TABLE, SMART_SAMPLING, parser, smart_sampling_constant)
 
@@ -99,19 +111,20 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
 
             while reward == None and i < 1000:
                 reward = parser.get_reward()
+                last_index = parser.current_index
                 vars = parser.get_vars()
                 if reward is not None:
                     reward = float(reward)
                     break
                 else:
-                    options = parser.get_options(vars)
-                    if parser.get_var("t") == "0":
-                        action = Q_TABLE.choose_action(vars, parser.get_actions(options))
+                    actions, options = parser.get_options()
+                    if parser.get_t() == 0:
+                        action = Q_TABLE.choose_action(last_index, actions)
                         #print("En estado ", vars, "Q-learning eligió la acción", action)
                         parser.update_vars(action, options)
-                    elif parser.get_var("t") == "1":
-                        hash_value = SMART_SAMPLING.hash(vars, z)
-                        action = SMART_SAMPLING.choose_action(hash_value, parser.get_actions(options))
+                    elif parser.get_t() == 1:
+                        hash_value = SMART_SAMPLING.hash(parser.get_bin(), z)
+                        action = SMART_SAMPLING.choose_action(hash_value, actions)
                         #print("En estado ", vars, "SmartSampling eligió la acción", action)
                         parser.update_vars(action, options)
                     else:
@@ -190,7 +203,6 @@ for ex in [ex_basic]:
                     }
                     will_test.append(data)
 
-    print("Necesitamos correr", len(will_test), "tests")
     i = complete - len(will_test)
     for data in will_test:
         data_dump = data.copy()
@@ -198,6 +210,5 @@ for ex in [ex_basic]:
         OUTPUTTER.save_json(results)
 
         i += 1
-        print(f"Progreso: {i*100/complete}")
 
     

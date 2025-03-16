@@ -35,6 +35,7 @@ class TrainingOutput:
             j = 0
             while reward == None and j < 1000:
                 reward = parser.get_reward()
+                last_index = parser.current_index
                 vars = parser.get_vars()
                 
                 if reward is not None:
@@ -42,16 +43,17 @@ class TrainingOutput:
                     break
                 
                 else:
-                    options = parser.get_options(vars)
-                    if parser.get_var("t") == "0":
-                        action = q_table.choose_action(vars, parser.get_actions(options))
+                    actions, options = parser.get_options()
+
+                    if parser.get_t() == 0:
+                        action = q_table.ready(last_index, actions)
                         #print("En estado ", vars, "Q-learning eligió la acción", action)
                         parser.update_vars(action, options)
-                    elif parser.get_var("t") == "1":
+                    elif parser.get_t() == 1:
                         if not data['smart_sampling_constant']:
                             z = smartsampling.get_random_z()
-                        hash_value = smartsampling.hash(vars, z)
-                        action = smartsampling.choose_action(hash_value, parser.get_actions(options))
+                        hash_value = smartsampling.hash(parser.get_bin(), z)
+                        action = smartsampling.choose_action(hash_value, actions)
                         #print("En estado ", vars, "SmartSampling eligió la acción", action)
                         parser.update_vars(action, options)
                     else:
