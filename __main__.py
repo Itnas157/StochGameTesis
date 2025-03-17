@@ -7,6 +7,7 @@ import examples.example_dice as ex_dice
 import examples.example_race as ex_race
 import examples.example_three_line as ex_three_line
 import examples.example_basic as ex_basic
+import examples.example_basic_loop as ex_basic_loop
 
 from parser import Parser
 from qlearning.main import Q_table
@@ -15,15 +16,15 @@ from training_output import TrainingOutput
 
 
 # Parámetros Q-learning
-alphas = [0.01, 0.05, 0.1, 0.2]  # Tasa de aprendizaje
+alphas = [0.05, 0.1, 0.2]  # Tasa de aprendizaje
 final_alphas_porc = [0.5, 0.1, 0.05, 0.01]
 gammas = [0.8, 0.9, 0.95]  # Factor de descuento
 epsilons = [0.5, 0.7, 0.9]  # Probabilidad de exploración inicial
 min_epsilons = [0.001, 0.05]  # Valor mínimo de epsilon
-epsilon_decays = [0.0001, 0.0005, 0.001, 0.005]  # Tasa de decrecimiento de epsilon
+epsilon_decays = [0.0001, 0.0005, 0.001]  # Tasa de decrecimiento de epsilon
 
-smart_sampling_ns = [2**8, 2**10, 2**12]
-q_learning_episodes = [1000, 5000, 10**4, 2*10**4]
+smart_sampling_ns = [2**8]
+q_learning_episodes = [1000, 5000, 10**4]
 
 def run(parser: Parser, outputter: TrainingOutput, data: dict):
     #print("Empezando entrenamiento"
@@ -39,12 +40,6 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
 
     SMART_SAMPLING.set_max_z(SMART_SAMPLING_N)
     SMART_SAMPLING.set_state_max_val(parser.calculate_state_max_value())
-
-    bins = []
-    for comb in parser.all_combinations:
-        bins.append(state_to_bin(comb, SMART_SAMPLING.state_max_val))
-
-    parser.create_table(bins)
 
 
     #OUTPUTTER.print(f"Corriendo con alpha: {alpha}, gamma: {gamma}, epsilon: {epsilon}, min_epsilon: {min_epsilon}, epsilon_decay: {epsilon_decay}, smart_sampling_n: {smart_sampling_n}, q_learning_episodes: {q_learning_episodes}")
@@ -90,9 +85,9 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
                     assert True
                     
             Q_TABLE.update_column(last_index, action, parser.current_index, reward)
-            if Q_TABLE.get_iteration() == print_q:
+            """if Q_TABLE.get_iteration() == print_q:
                 print_q += 1000
-                Q_TABLE.convergence(parser.index_init)
+                Q_TABLE.convergence(parser.index_init)"""
                 
 
         # Guardar resultados
@@ -159,19 +154,24 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
     #   OUTPUTTER.run_test(Q_TABLE, SMART_SAMPLING, parser, smart_sampling_constant)
     #OUTPUTTER.run_test(Q_TABLE, SMART_SAMPLING, parser, smart_sampling_constant)
 
-    
-
     #print("Entrenamiento terminado")
     return outputter.run_test(Q_TABLE, SMART_SAMPLING, parser, data)
 
-complete = 2 * 2 * len(alphas) * len(gammas) * len(epsilons) * len(min_epsilons) * len(epsilon_decays) * len(smart_sampling_ns) * len(q_learning_episodes)
+complete = 2 * 2 * len(alphas) * len(final_alphas_porc) * len(gammas) * len(epsilons) * len(min_epsilons) * len(epsilon_decays) * len(smart_sampling_ns) * len(q_learning_episodes)
 print("Completitud esperada:", complete)
 
-for ex in [ex_basic]:
+
+for ex in [ex_three_line]:
     print("Corriendo ejemplo", ex.name)
     parser = Parser(ex.trans_str, ex.init_vars)
+    bins = []
+    for comb in parser.all_combinations:
+        bins.append(state_to_bin(comb, parser.calculate_state_max_value()))
+
+    parser.create_table(bins)
+
     OUTPUT_FILE = ex.name
-    OUTPUTTER = TrainingOutput(OUTPUT_FILE, 1)
+    OUTPUTTER = TrainingOutput(OUTPUT_FILE)
 
     results = OUTPUTTER.load_json()
     will_test = []
@@ -204,11 +204,15 @@ for ex in [ex_basic]:
                     will_test.append(data)
 
     i = complete - len(will_test)
+    c = i + 1
     for data in will_test:
         data_dump = data.copy()
         results.append(run(parser, OUTPUTTER, data_dump))
         OUTPUTTER.save_json(results)
 
         i += 1
+        if i == c:
+            print(100*i/complete)
+            c += 100
 
     

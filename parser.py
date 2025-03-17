@@ -1,73 +1,60 @@
+import json
 import random
 import re
 from itertools import product
+import time
 
 import numpy as np
 
-def final_states_reward(transitions, curr_vars):
-    options = []
-    state = {}
+def timer(func):
+    """Decorador para medir el tiempo de ejecución de una función."""
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()  # Inicia el cronómetro
+        result = func(*args, **kwargs)  # Ejecuta la función
+        end = time.perf_counter()  # Detiene el cronómetro
+        print(f"{func.__name__} tardó {end - start:.6f} segundos en ejecutarse")
+        return result  # Devuelve el resultado original
+    return wrapper
 
-    for v in curr_vars:
-        dupla = v.split("=")
-        assert(len(dupla) == 2)
-        state[dupla[0]] = dupla[1]
-
+def final_states_reward(transitions, state):
     for t in transitions:
-        sets = t.split(" -> ")
-        assert(len(sets) == 2)
-
-        sets[0] = sets[0].replace("qf: ", "")
-        predicates = sets[0].split(" ^ ")
-        expanded_predicates = {}
-
-        for pred in predicates:
-            for var, values in expand_ranges(pred):
-                expanded_predicates[var] = values
-
-        # Validar si el estado actual cumple con todos los predicados
-        if all(var in state and state[var] in valid_values for var, valid_values in expanded_predicates.items()):
-            options.append(sets[1])
-    
-    # Caso de múltiple estados finales
-    if len(options) > 1:
-        if '-1' in options and '1' in options:
-            return 0
-        elif '-1' in options:
-            return -1
-        elif '1' in options:
-            return 1
-
-    assert len(options) == 1 or len(options) == 0
-    return options[0] if len(options) > 0 else None
-
-def qlearning_parser(transitions, curr_vars):
-    """
-    Filtra las acciones posibles según el estado actual (curr_vars).
-    Retorna una lista con las acciones permitidas.
-    """
-    options = []
-    state = {}
-
-    for v in curr_vars:
-        dupla = v.split("=")
-        assert(len(dupla) == 2)
-        state[dupla[0]] = dupla[1]
-
-    for t in transitions:
-        sets = t.split(" -> ")
-        assert(len(sets) == 2)
+        left, _, right = t.partition(" -> ")
+        predicates = left.removeprefix("qf: ").split(" ^ ")
         
-        predicates = sets[0].split(" ^ ")
+        expanded_predicates = {
+            var: values for pred in predicates for var, values in expand_ranges(pred)
+        }
+
+        # Validar si el estado actual cumple con todos los predicados
+        if all(state.get(var) in valid_values for var, valid_values in expanded_predicates.items()):
+            if right in {"-1", "1"}:  # Salida temprana si se encuentra ambos valores
+                return 0 if "-1" in expanded_predicates and "1" in expanded_predicates else int(right)
+            return right
+
+    return None
+
+
+def qlearning_parser(transitions):
+    options = []
+
+    for t in transitions:
+        left, _, right = t.partition(" -> ")
+        
+        predicates = left.split(" ^ ")
         expanded_predicates = {}
 
         for pred in predicates:
             for var, values in expand_ranges(pred):
                 expanded_predicates[var] = values
 
-        # Validar si el estado actual cumple con todos los predicados
-        if all(var in state and state[var] in valid_values for var, valid_values in expanded_predicates.items()):
-            options.append(sets[1])
+        possibilities = []
+        assigns, _, action = right.partition(" !!!")  # Más rápido que split(" !!!")[1]
+        for poss in assigns.split(" | "):
+            prob, _, state_str = poss.partition(": ")  # Más eficiente que split(": ")
+            possibilities.append((float(prob), state_str, action))
+
+
+        options.append((expanded_predicates, possibilities))
 
     return options
 
@@ -79,15 +66,15 @@ def expand_ranges(predicate):
     range_match = re.match(r"(\w+)=([\d]+)\|[.]+\|([\d]+)", predicate)
     if range_match:
         var, start, end = range_match.groups()
-        return [(var, [str(i) for i in range(int(start), int(end) + 1)])]
+        return [(var, [i for i in range(int(start), int(end) + 1)])]
 
     multi_match = re.match(r"(\w+)=([\d]+(?:\|[\d]+)*)", predicate)
     if multi_match:
         var, values = multi_match.groups()
-        return [(var, values.split("|"))]
+        return [(var, [int(i) for i in values.split("|")])]
 
     var, value = predicate.split("=")
-    return [(var, [value])]
+    return [(var, [int(value)])]
 
 
 
@@ -140,8 +127,6 @@ def parse_assign(expresion, vars):
     Procesa una expresión de asignación, reemplaza las variables en el lado derecho
     con sus valores y realiza el cálculo.
     """
-    # Convertir vars en un diccionario para facilitar la búsqueda
-    var_dict = {var.split("=")[0]: var.split("=")[1] for var in vars}
 
     # Separar la expresión en dos partes: lado izquierdo y derecho de la asignación
     left, right = expresion.split("=")
@@ -151,8 +136,8 @@ def parse_assign(expresion, vars):
 
     # Reemplazar las variables en el lado derecho con sus valores
     for var in variables:
-        if var in var_dict:
-            right = re.sub(r'\b' + var + r'\b', var_dict[var], right)
+        if var in vars:
+            right = re.sub(r'\b' + var + r'\b', vars[var], right)
 
     # Evaluar la expresión matemática del lado derecho
     try:
@@ -161,17 +146,14 @@ def parse_assign(expresion, vars):
         raise ValueError(f"Error al evaluar la expresión '{right}': {e}")
 
     # Devolver la asignación con el cálculo resuelto
-    return f"{left}={right_value}"
+    return left, right_value
 
 
 def calculate_next_state(state, assigns):
     new_vars = state.copy()
     for assign in assigns.split(";"):
-        new_var = parse_assign(assign, state)
-        
-        for i in range(len(new_vars)):
-            if new_vars[i].split("=")[0] == new_var.split("=")[0]:
-                new_vars[i] = new_var
+        key, new_var = parse_assign(assign, state)
+        new_vars[key] = new_var
 
     return new_vars
 
@@ -192,18 +174,24 @@ def get_comb(non_final_states, final_states, init_vars):
     
     return states
 
+@timer
 def create_parser_table(states, non_final_states, final_states, init_vars, bins):
     tuples = []
-    state_index = {tuple(states[i]): i for i in range(len(states))}  # Índices rápidos
     index_init = None
 
     assert len(states) == len(bins)
     
-    for i in range(len(states)):
-        state = states[i]
-        bin = bins[i]
-    
-        t_value = from_assign_get_var(state[0])
+    t_values = list(map(from_assign_get_var, (state[0] for state in states)))
+    final_states = set(final_states)
+    non_final_states = set(non_final_states)
+
+    init_vars = {k: int(v) for k, _, v in (var.partition("=") for var in init_vars)}
+    states = [{k: int(v) for k, _, v in (var.partition("=") for var in state)} for state in states]
+
+    options = qlearning_parser(non_final_states)
+
+    for state, bin, t_value in zip(states, bins, t_values):
+        #print(i); i+=1
         assert t_value[0] == 't'
         t = t_value[1][0]
 
@@ -211,17 +199,11 @@ def create_parser_table(states, non_final_states, final_states, init_vars, bins)
         if reward is not None:
             tuples.append([(-1, float(reward), state, "__None__", bin, t)])  # t = 1 para estados finales
         else:
-            options = qlearning_parser(non_final_states, state)
             state_entries = []
-            
             for opt in options:
-                action = opt.split(" !!!")[1]
-                assigns = opt.split(" !!!")[0]
-                
-                for poss in assigns.split(" | "):
-                    tmp = poss.split(": ")
-                    prob_tuple = (float(tmp[0]), tmp[1], state, action, bin, t)  # t = 0 para transiciones normales
-                    state_entries.append(prob_tuple)
+                if all(state.get(var) in valid_values for var, valid_values in opt[0].items()):
+                    for poss in opt[1]:
+                        state_entries.append((poss[0], poss[1], state, poss[2], bin, t))
             
             tuples.append(state_entries)
 
@@ -237,14 +219,26 @@ def create_parser_table(states, non_final_states, final_states, init_vars, bins)
                 next_index = rewards.index(poss[1])
                 tuples[i][j] = poss + (next_index,)
 
-    for i in range(len(tuples)):
-        for j in range(len(tuples[i])):
-            poss = tuples[i][j]
-            if poss[0] != -1:
-                next_state = calculate_next_state(poss[2], poss[1])
-                next_index = state_index.get(tuple(next_state), None)
-                if tuples[next_index][0][0] == -1: next_index = tuples[next_index][0][6]
-                tuples[i][j] = poss + (next_state, next_index)
+
+    state_index_map = {frozenset(tuples[t][0][2].items()): t for t in range(len(tuples))}
+    # Iterar sobre la lista de tuples
+    for i, sublist in enumerate(tuples):
+        for j, poss in enumerate(sublist):
+            if poss[0] == -1:
+                continue  # Saltar si es -1 (estado final)
+            
+            next_state = calculate_next_state(poss[2], poss[1])
+            next_state_key = frozenset(next_state.items())
+            next_index = state_index_map.get(next_state_key, -1)
+
+            assert next_index != -1, f"Estado {next_state} no encontrado en state_index_map"
+
+            # Si el estado es final, asignar índice alternativo
+            if tuples[next_index][0][0] == -1:
+                next_index = tuples[next_index][0][6]
+
+            # Reemplazar la tupla original con la nueva versión
+            sublist[j] = poss + (next_state, next_index)
 
     new_tuples = [[(-1, r)] for r in rewards]
     c = len(new_tuples)
@@ -261,33 +255,35 @@ def create_parser_table(states, non_final_states, final_states, init_vars, bins)
 
     final_tuples = [[(-1, r)] for r in rewards]
 
-    for i in range(len(new_tuples)):
-        if new_tuples[i][0][0] != -1:
-            new_poss = []
-            index = -1
-            for j in range(len(new_tuples[i])):
-                action = new_tuples[i][j][1]
-                state = new_tuples[i][j][4]
+    pointing_map = {frozenset(new_tuples[i][0][4].items()): i for i in range(len(new_tuples)) if new_tuples[i][0][0] != -1}
 
-                while index == -1:
-                    for t_i in range(len(tuples)):
-                        if tuples[t_i][j][2] == state:
-                            index = t_i
-                            break
-                
-                pointing = tuples[index][j][7]
-                if pointing >= len(rewards):
-                    for second_i in range(len(new_tuples)):
-                        if new_tuples[second_i][0][0] != -1 and new_tuples[second_i][0][4] == tuples[pointing][0][2]:
-                            pointing = second_i
-                            break
-                
-                new_poss.append((new_tuples[i][j][0], new_tuples[i][j][1], new_tuples[i][j][2], new_tuples[i][j][3], pointing))
-            final_tuples.append(new_poss)
+    for i, sublist in enumerate(new_tuples):
+        if sublist[0][0] == -1:
+            continue  # Saltar si es un estado final
+        
+        new_poss = []
+        for j, poss in enumerate(sublist):
+            state = poss[4]  # new_tuples[i][j][4]
+            # Buscar el índice del estado en `tuples`
+            index = state_index_map.get(frozenset(state.items()), -1)
+            assert index != -1, f"Estado {state} no encontrado en tuples"
+            
+            # Obtener `pointing`
+            pointing = tuples[index][j][7]
+            
+            # Validar si `pointing` está dentro del rango de `rewards`
+            if pointing >= len(rewards):
+                pointing = pointing_map.get(frozenset(tuples[pointing][0][2].items()), pointing)
+            
+            # Construir nueva tupla optimizada
+            new_poss.append((poss[0], poss[1], poss[2], poss[3], pointing))
+        
+        # Agregar a final_tuples manteniendo su estructura original
+        final_tuples.append(new_poss)
 
     
     tuples = [np.array(t, dtype=object) for t in final_tuples]
-    
+
     return tuples, index_init
 
 def update_parser_table_with_hash(table, hashes):
@@ -416,12 +412,15 @@ class Parser:
         return self.table[self.current_index]
     
     def update_vars(self, action, options):
+        accumulative_prob = 0
+        rand = random.random()
         for opt in options:
-            accumulative_prob = 0
-            rand = random.random()
             if opt[1] == action:
-                if rand < accumulative_prob + opt[0]:
+                accumulative_prob += opt[0]
+                if rand < accumulative_prob:
+                    #print(rand, accumulative_prob, opt)
                     self.current_index = opt[4]
+                    break
 
     def get_reward(self):
         return self.table[self.current_index][0][1] if self.table[self.current_index][0][0] == -1 else None

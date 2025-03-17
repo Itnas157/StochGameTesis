@@ -1,0 +1,28 @@
+Mejores valores promedio para maximizar Q-learning:
+alpha: 0.1
+gamma: 0.95
+epsilon: 0.5
+epsilon_decay: 0.0001
+q_learning_episodes: 1000
+smart_sampling_n: 256
+q_learning_reset: False
+smart_sampling_constant: True
+final_alpha_porc: 0.05
+min_epsilon: 0.05
+
+Mejores valores promedio para maximizar SmartSampling:
+alpha: 0.05
+gamma: 0.9
+epsilon: 0.9
+epsilon_decay: 0.0005
+q_learning_episodes: 10000
+smart_sampling_n: 256
+q_learning_reset: True
+smart_sampling_constant: False
+final_alpha_porc: 0.01
+min_epsilon: 0.001
+
+Promedio de victorias:
+Q-learning: 36.55%
+SmartSampling: 63.45%
+Draw: 0.00%

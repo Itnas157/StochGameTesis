@@ -8,10 +8,10 @@ from smartsampling.main import Transformer as SmartSampling
 OUTPUT_DIR = "output/"
 
 class TrainingOutput:
-    def __init__(self, output_file, i):
+    def __init__(self, output_file):
         # Si el outputfile no existe, crearlo
-        output_f = OUTPUT_DIR + output_file + "_" + str(i) + ".txt"
-        output_json = OUTPUT_DIR + output_file + "_" + str(i) + ".json"
+        output_f = OUTPUT_DIR + output_file + ".txt"
+        output_json = OUTPUT_DIR + output_file + ".json"
 
         open(output_f, 'a').close()
         open(output_json, 'a').close()
@@ -20,7 +20,7 @@ class TrainingOutput:
         self.output_json = output_json
     
     def run_test(self, q_table: Q_table, smartsampling: SmartSampling, parser: Parser, data: dict):
-        ROUNDS = 100
+        ROUNDS = 10000
 
         result_q = 0
         result_ss = 0
@@ -47,14 +47,14 @@ class TrainingOutput:
 
                     if parser.get_t() == 0:
                         action = q_table.ready(last_index, actions)
-                        #print("En estado ", vars, "Q-learning eligió la acción", action)
+                        #print("Q-learning eligió la acción", action)
                         parser.update_vars(action, options)
                     elif parser.get_t() == 1:
                         if not data['smart_sampling_constant']:
                             z = smartsampling.get_random_z()
                         hash_value = smartsampling.hash(parser.get_bin(), z)
                         action = smartsampling.choose_action(hash_value, actions)
-                        #print("En estado ", vars, "SmartSampling eligió la acción", action)
+                        #print("SmartSampling eligió la acción", action)
                         parser.update_vars(action, options)
                     else:
                         print("Turno invalido:", parser.get_var("t"))
@@ -67,10 +67,13 @@ class TrainingOutput:
             elif reward == -1: result_ss += 1
             else: result_draw += 1
         
+        """
         output = f"Q-learning: {result_q/(ROUNDS//100)}%, SmartSampling: {result_ss/(ROUNDS//100)}% y {result_draw/(ROUNDS//100)}% empates."
 
+        
         with open(self.output_file, 'a') as f:
             f.write(output + "\n")
+        """
 
         data["Q-learning"] = result_q/(ROUNDS//100)
         data["SmartSampling"] = result_ss/(ROUNDS//100)
