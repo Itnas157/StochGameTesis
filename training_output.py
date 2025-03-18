@@ -9,17 +9,13 @@ OUTPUT_DIR = "output/"
 
 class TrainingOutput:
     def __init__(self, output_file):
-        # Si el outputfile no existe, crearlo
-        output_f = OUTPUT_DIR + output_file + ".txt"
         output_json = OUTPUT_DIR + output_file + ".json"
 
-        open(output_f, 'a').close()
         open(output_json, 'a').close()
         
-        self.output_file = output_f
         self.output_json = output_json
     
-    def run_test(self, q_table: Q_table, smartsampling: SmartSampling, parser: Parser, data: dict):
+    def run_test(self, q_table: Q_table, smartsampling: SmartSampling, parser: Parser, data: dict, q_learning_role: str, ss_role: str):
         ROUNDS = 10000
 
         result_q = 0
@@ -27,7 +23,6 @@ class TrainingOutput:
         result_draw = 0
 
         z = smartsampling.get_random_z()
-
         for _ in range(ROUNDS):
             reward = None
             parser.reset_vars()
@@ -36,25 +31,17 @@ class TrainingOutput:
             while reward == None and j < 1000:
                 reward = parser.get_reward()
                 last_index = parser.current_index
-                vars = parser.get_vars()
                 
-                if reward is not None:
-                    reward = float(reward)
-                    break
-                
+                if reward is not None: reward = float(reward); break 
                 else:
                     actions, options = parser.get_options()
-
-                    if parser.get_t() == 0:
+                    t = parser.get_t()
+                    if (t==0 and q_learning_role=="MAX") or (t==1 and ss_role=="MAX"):
                         action = q_table.ready(last_index, actions)
-                        #print("Q-learning eligió la acción", action)
                         parser.update_vars(action, options)
-                    elif parser.get_t() == 1:
-                        if not data['smart_sampling_constant']:
-                            z = smartsampling.get_random_z()
+                    elif (t==1 and q_learning_role=="MAX") or (t==0 and ss_role=="MAX"):
                         hash_value = smartsampling.hash(parser.get_bin(), z)
                         action = smartsampling.choose_action(hash_value, actions)
-                        #print("SmartSampling eligió la acción", action)
                         parser.update_vars(action, options)
                     else:
                         print("Turno invalido:", parser.get_var("t"))
@@ -63,20 +50,61 @@ class TrainingOutput:
                 j += 1
             
             
-            if reward == 1: result_q += 1
-            elif reward == -1: result_ss += 1
+            if (reward == 1 and q_learning_role == "MAX") or (reward == -1 and ss_role =="MAX"):
+                result_q += 1
+            elif (reward == -1 and q_learning_role == "MAX") or (reward == 1 and ss_role=="MAX"):
+                result_ss += 1
             else: result_draw += 1
-        
-        """
-        output = f"Q-learning: {result_q/(ROUNDS//100)}%, SmartSampling: {result_ss/(ROUNDS//100)}% y {result_draw/(ROUNDS//100)}% empates."
-
-        
-        with open(self.output_file, 'a') as f:
-            f.write(output + "\n")
-        """
 
         data["Q-learning"] = result_q/(ROUNDS//100)
         data["SmartSampling"] = result_ss/(ROUNDS//100)
+        data["Draw"] = result_draw/(ROUNDS//100)
+
+        return data
+    
+    def run_test_ss(self, ss1: SmartSampling, ss2: SmartSampling, parser: Parser, data: dict):
+        ROUNDS = 10000
+
+        result_max = 0
+        result_min = 0
+        result_draw = 0
+
+        z1 = ss1.get_random_z()
+        z2 = ss2.get_random_z()
+
+        for _ in range(ROUNDS):
+            reward = None
+            parser.reset_vars()
+    
+            j = 0
+            while reward == None and j < 1000:
+                reward = parser.get_reward()
+                
+                if reward is not None: reward = float(reward); break
+                else:
+                    actions, options = parser.get_options()
+
+                    if parser.get_t() == 0:
+                        hash_value = ss1.hash(parser.get_bin(), z1)
+                        action = ss1.choose_action(hash_value, actions)
+                        parser.update_vars(action, options)
+                    elif parser.get_t() == 1:
+                        hash_value = ss2.hash(parser.get_bin(), z2)
+                        action = ss2.choose_action(hash_value, actions)
+                        parser.update_vars(action, options)
+                    else:
+                        print("Turno invalido:", parser.get_var("t"))
+                        assert True
+                
+                j += 1
+            
+            
+            if reward == 1: result_max += 1
+            elif reward == -1: result_min += 1
+            else: result_draw += 1
+
+        data["SS_Max"] = result_max/(ROUNDS//100)
+        data["SS_Min"] = result_min/(ROUNDS//100)
         data["Draw"] = result_draw/(ROUNDS//100)
 
         return data

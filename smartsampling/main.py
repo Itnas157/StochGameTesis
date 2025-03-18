@@ -27,19 +27,14 @@ def state_to_bin(state, state_max_val) -> str:
         return bin_repr
 
 class Transformer:
-    def __init__(self) -> None:
+    def __init__(self, max_z) -> None:
         self.state_max_val = {}
-        self.max_z = -1
-        self.zs= []
+        self.max_z = max_z
+        self.zs= [i for i in range(max_z)]
 
     def set_state_max_val(self, max_values):
         self.state_max_val = max_values
         
-    
-    def set_max_z(self, z):
-        self.max_z = z
-        self.zs = [i for i in range(z)]
-    
     def update_zs(self, z_keys):
         self.zs = z_keys
 
@@ -65,4 +60,5 @@ class Transformer:
     
     def get_random_z(self):
         return random.choice(self.zs)
+
 
