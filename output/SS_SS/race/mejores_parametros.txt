@@ -1,0 +1,12 @@
+Mejores valores promedio para maximizar SS_Max:
+smart_sampling_n: 2048
+smart_sampling_constant: True
+
+Mejores valores promedio para maximizar SS_Min:
+smart_sampling_n: 2048
+smart_sampling_constant: False
+
+Promedio de victorias:
+SS_Max: 45.60%
+SS_Min: 54.40%
+Draw: 0.00%

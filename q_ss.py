@@ -11,10 +11,10 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict, q_learning_role: 
     alpha_decay = (data['alpha'] - data['alpha'] * data['final_alpha_porc']) / Q_TABLE_ITERATIONS
     ss_is_maxing = ss_role == "MAX"
 
-    Q_TABLE = Q_table(data['alpha'], alpha_decay, data['gamma'], data['epsilon'], data['min_epsilon'], data['epsilon_decay'], q_learning_role)
+    Q_TABLE = Q_table(data['alpha'], alpha_decay, data['gamma'], data['epsilon'], data['epsilon_decay'], q_learning_role)
     SMART_SAMPLING = SmartSampling(SMART_SAMPLING_N)
 
-    SMART_SAMPLING.set_state_max_val(parser.calculate_state_max_value())
+    SMART_SAMPLING.set_state_max_val(parser.get_state_max_value())
     Q_TABLE.init_q_table(parser.get_table(), parser.index_init)
 
     while SMART_SAMPLING_N > 1:
@@ -26,17 +26,18 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict, q_learning_role: 
 
         z = SMART_SAMPLING.get_random_z()
 
-        #print_q = 1000
-        ## Correr Q-learning
+        i = 0
         for _ in range(Q_TABLE_ITERATIONS):
             last_index = parser.current_index
             reward = parser.get_reward()
-            action = '__None__'
+            actions, options = parser.get_options()
 
             if reward is not None:
-                reward = float(parser.get_reward())
+                action = '__None__'
+                reward = float(reward)
+                i = -1
                 parser.reset_vars()
-            else:
+            elif i < 1000:
                 reward = 0
                 actions, options = parser.get_options()
                 t = parser.get_t()
@@ -51,12 +52,13 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict, q_learning_role: 
                     hash_value = SMART_SAMPLING.hash(parser.get_bin(), z)
                     action = SMART_SAMPLING.choose_action(hash_value, actions)
                     parser.update_vars(action, options)
-                    
+            else:
+                reward = 0
+                parser.reset_vars()
+                i = -1
+
             Q_TABLE.update_column(last_index, action, parser.current_index, reward)
-            """if Q_TABLE.get_iteration() == print_q:
-                print_q += 1000
-                Q_TABLE.convergence(parser.index_init)"""
-    
+            i += 1
 
         # Correr las N estrategias de SmartSampling con Q-learning entrenado
         z_reward = []

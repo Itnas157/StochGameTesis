@@ -5,15 +5,15 @@ from parser import Parser
 from qlearning.main import Q_table
 from smartsampling.main import Transformer as SmartSampling
 
-OUTPUT_DIR = "output/"
-
 class TrainingOutput:
-    def __init__(self, output_file):
-        output_json = OUTPUT_DIR + output_file + ".json"
-
-        open(output_json, 'a').close()
+    def __init__(self, folder):
+        # Crear directorio si no existe
+        output_dir = folder
+        os.makedirs(output_dir, exist_ok=True)
         
-        self.output_json = output_json
+        self.output_json = folder + "/results.json"
+        open(self.output_json, 'a').close()
+        
     
     def run_test(self, q_table: Q_table, smartsampling: SmartSampling, parser: Parser, data: dict, q_learning_role: str, ss_role: str):
         ROUNDS = 10000
@@ -63,7 +63,7 @@ class TrainingOutput:
         return data
     
     def run_test_ss(self, ss1: SmartSampling, ss2: SmartSampling, parser: Parser, data: dict):
-        ROUNDS = 10000
+        ROUNDS = 5000
 
         result_max = 0
         result_min = 0

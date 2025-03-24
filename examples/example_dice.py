@@ -1,5 +1,15 @@
 name = "dice"
 init_vars = ["t=0", "j1=0", "j2=0", "ac=0"]
+
+alphas = [0.1]  # Tasa de aprendizaje
+final_alphas_porc = [0.1]
+gammas = [0.9]  # Factor de descuento
+epsilons = [0.9]  # Probabilidad de exploración inicial
+epsilon_decays = [0.001]  # Tasa de decrecimiento de epsilon
+
+smart_sampling_ns = [2**11]
+q_learning_episodes = [5000]
+
 trans_str = """
 --Juego de lanzar un dado hasta llegar a 50
 --Cada jugador tiene dos opciones:

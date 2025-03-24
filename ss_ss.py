@@ -10,8 +10,8 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
     SS1 = SmartSampling(N1)
     SS2 = SmartSampling(N2)
 
-    SS1.set_state_max_val(parser.calculate_state_max_value())
-    SS2.set_state_max_val(parser.calculate_state_max_value())
+    SS1.set_state_max_val(parser.get_state_max_value())
+    SS2.set_state_max_val(parser.get_state_max_value())
 
     while N1 > 1 and N2 > 1:
         ## SS 1
@@ -60,7 +60,6 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
         z_keys = [z['z'] for z in z_reward]
         SS1.update_zs(z_keys)
     
-
         # SS 2
 
         z1 = SS1.get_random_z()

@@ -1,5 +1,15 @@
 name = "coin_flipper"
 init_vars = ["t=1", "j1=0", "j2=0", "caras=0", "coins=4"]
+
+alphas = [0.1]  # Tasa de aprendizaje
+final_alphas_porc = [0.1]
+gammas = [0.9]  # Factor de descuento
+epsilons = [0.9]  # Probabilidad de exploración inicial
+epsilon_decays = [0.001]  # Tasa de decrecimiento de epsilon
+
+smart_sampling_ns = [2**10]
+q_learning_episodes = [2500]
+
 trans_str = """
 --Juego de tirar monedas, gana el que llegue a 15 caras primero
 --Se tiran cuatro monedas:

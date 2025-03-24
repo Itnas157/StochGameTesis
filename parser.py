@@ -1,20 +1,9 @@
-import json
 import random
 import re
 from itertools import product
-import time
+from timer import timer
 
 import numpy as np
-
-def timer(func):
-    """Decorador para medir el tiempo de ejecución de una función."""
-    def wrapper(*args, **kwargs):
-        start = time.perf_counter()  # Inicia el cronómetro
-        result = func(*args, **kwargs)  # Ejecuta la función
-        end = time.perf_counter()  # Detiene el cronómetro
-        print(f"{func.__name__} tardó {end - start:.6f} segundos en ejecutarse")
-        return result  # Devuelve el resultado original
-    return wrapper
 
 def final_states_reward(transitions, state):
     for t in transitions:
@@ -32,7 +21,6 @@ def final_states_reward(transitions, state):
             return right
 
     return None
-
 
 def qlearning_parser(transitions):
     options = []
@@ -57,9 +45,6 @@ def qlearning_parser(transitions):
         options.append((expanded_predicates, possibilities))
 
     return options
-
-
-
 
 def expand_ranges(predicate):
     """ Expande expresiones como x=0|...|14 y ac=5|10 en una lista de listas de valores posibles. """
@@ -123,11 +108,6 @@ def get_states(non_final_states, final_states, init_vars):
     return vars_values
 
 def parse_assign(expresion, vars):
-    """
-    Procesa una expresión de asignación, reemplaza las variables en el lado derecho
-    con sus valores y realiza el cálculo.
-    """
-
     # Separar la expresión en dos partes: lado izquierdo y derecho de la asignación
     left, right = expresion.split("=")
 
@@ -137,7 +117,7 @@ def parse_assign(expresion, vars):
     # Reemplazar las variables en el lado derecho con sus valores
     for var in variables:
         if var in vars:
-            right = re.sub(r'\b' + var + r'\b', vars[var], right)
+            right = re.sub(r'\b' + var + r'\b', str(vars[var]), right)
 
     # Evaluar la expresión matemática del lado derecho
     try:
@@ -159,14 +139,9 @@ def calculate_next_state(state, assigns):
 
 def get_comb(non_final_states, final_states, init_vars):
     vars_values = get_states(non_final_states, final_states, init_vars)
-    # Generar todas las combinaciones posibles de valores para cada variable
-
-    #print(non_final_states)
 
     all_combinations = list(product(*vars_values.values()))  # Genera las combinaciones
-    #print(all_combinations)
 
-    # Convertir las combinaciones en estados con el formato "var=value"
     states = []
     for combination in all_combinations:
         state = [f"{list(vars_values.keys())[i]}={combination[i]}" for i in range(len(combination))]
@@ -205,6 +180,9 @@ def create_parser_table(states, non_final_states, final_states, init_vars, bins)
                     for poss in opt[1]:
                         state_entries.append((poss[0], poss[1], state, poss[2], bin, t))
             
+            if state_entries == []:
+                state_entries = [(-1, 0.0, state, "__None__", bin, t)]
+
             tuples.append(state_entries)
 
     rewards = []
@@ -286,83 +264,11 @@ def create_parser_table(states, non_final_states, final_states, init_vars, bins)
 
     return tuples, index_init
 
-def update_parser_table_with_hash(table, hashes):
-    tuples = []
-    for t in table:
-        tuples.append()
-
-
-def get_actions(transitions):
-    actions = []
-    for t in transitions:
-        sets = t.split(" -> ")
-        assert(len(sets) == 2)
-
-        # Sets[0] sera los predicados
-        action_div = sets[1].split("!!!")
-        if len(action_div) > 1 and not action_div[-1] in actions: actions.append(action_div[-1])
-    return actions
-
-
-def parse_transition(transition):
-    parts = transition.split('!!!')
-
-    # Si no hay acción (es un estado final), retornamos la transición sin acción
-    if len(parts) == 1:
-        transition = parts[0].strip()
-        return [(-1.0, transition)], None  # No hay acción asociada
-
-    state_changes = parts[0].strip()
-    action = parts[1].strip()
-
-    # Las probabilidades y nuevos estados están antes de la acción (!)
-    changes_with_probs = state_changes.split()
-    
-    # Parsear cada cambio de estado con su probabilidad
-    transitions = []
-    for change in changes_with_probs:
-        prob, state_change = change.split(':')
-        transitions.append((float(prob), state_change))
-    
-    return transitions, action
-
-
-
-def chose_action(curr_vars, action, non_final_states):
-    """
-    Elige una acción y actualiza las variables actuales.
-    """
-    for t in non_final_states:
-        sets = t.split(" -> ")
-        assert(len(sets) == 2)
-
-        # Sets[0] sera los predicados
-        action_div = sets[1].split("!!!")
-        if action_div[-1] == action:
-            state_changes = action_div[0].strip(" | ")
-            changes_with_probs = state_changes.split()
-
-            for change in changes_with_probs:
-                prob, state_change = change.split(': ')
-                if all(var in state_change for var in curr_vars):
-                    return state_change
-
-    return None
-
-
-
 ###### DEFINITIVE:
 
 class Parser:
     def __init__(self, example, init_vars):
-        # Example sin parsear
-        self.example = example
-
-        # Variables iniciales
         self.init_vars = init_vars
-
-        # Nombres de variables
-        self.var_names = [var.split("=")[0] for var in init_vars]
 
         # Estados finales
         example_no_comments = example.split('\n')
@@ -374,53 +280,31 @@ class Parser:
         self.non_final_states = [tr for tr in example_no_comments if not tr.startswith("qf: ")]
 
         # Todos los estados
-        self.all_combinations = get_comb(self.non_final_states, self.final_states, self.init_vars)
+        self.all_combinations = get_comb(self.non_final_states, self.final_states, init_vars)
 
+        self.state_max_val = {}
+
+        for transition in self.non_final_states + self.final_states:
+            t = transition.replace("qf: ", "")
+            precs = t.split(" -> ")[0]
+            for prec in precs.split(" ^ "):
+                # Dividir cada estado en clave=valor
+                var, vals = from_assign_get_var(prec)
+                if not var in self.state_max_val.keys(): self.state_max_val[var] = max(vals)
+                else: self.state_max_val[var] = max([self.state_max_val[var]] + vals)
 
         self.table = []
         self.index_init = -1
-
-        # Acciones
-        self.actions = get_actions(self.non_final_states)
     
     def create_table(self, bins):
         self.table, self.index_init = create_parser_table(self.all_combinations, self.non_final_states, self.final_states, self.init_vars, bins)
-
-        # Variables actuales
         self.current_index = self.index_init
 
-    def get_combinations(self):
-        return self.all_combinations
-        
-    def get_actions(self, options):
-        actions = []
-        for opt in options:
-            split = opt.split(" !!!")
-            assert len(split) == 2
-
-            if split[1] not in actions:
-                actions.append(split[1])
-        return actions
-    
     def get_options(self):
         actions = []
         for opt in self.table[self.current_index]:
             if not opt[1] in actions: actions.append(opt[1])
         return actions, self.table[self.current_index]
-    
-    def get_vars(self):
-        return self.table[self.current_index]
-    
-    def update_vars(self, action, options):
-        accumulative_prob = 0
-        rand = random.random()
-        for opt in options:
-            if opt[1] == action:
-                accumulative_prob += opt[0]
-                if rand < accumulative_prob:
-                    #print(rand, accumulative_prob, opt)
-                    self.current_index = opt[4]
-                    break
 
     def get_reward(self):
         return self.table[self.current_index][0][1] if self.table[self.current_index][0][0] == -1 else None
@@ -431,87 +315,21 @@ class Parser:
     def get_t(self):
         return self.table[self.current_index][0][3]
 
-
-    def get_var(self, var_name):
-        for var in self.current_vars:
-            if var.split("=")[0] == var_name:
-                return var.split("=")[1]
-        return None
-    
-
-    def is_final_state(self, state):
-        for t in self.final_states:
-            condition = t.split(" -> ")[0]
-            condition = condition.replace("qf: ", "")
-            conditions = condition.split(" ^ ")
-            
-            checks_all_conditions = True
-
-            for c in conditions:
-                var, values = from_assign_get_var(c)
-                for assign in state:
-                    var2, values2 = from_assign_get_var(assign)
-                    if var == var2 and values2[0] not in values:
-                        checks_all_conditions = False
-            
-            if checks_all_conditions:
-                return True
-
-        return False
-
-
-    def get_all_posibilities(self):
-        all_posibilities = []
-
-        for state in self.all_combinations:
-            if self.is_final_state(state):
-                all_posibilities.append({
-                    'vars': state,
-                    'action': '__None__'
-                })
-            else:
-                for opt in self.get_options(state):
-                    all_posibilities.append({
-                        'vars': state,
-                        'action': opt.split(" !!!")[1]
-                    })
-
-        return all_posibilities
-    
-
-    def get_init_states(self):
-        options = self.get_options(self.init_vars)
-        init_states = []
-        for opt in options:
-            init_states.append({
-                'vars': self.init_vars,
-                'action': opt.split(" !!!")[1]
-            })
-        return init_states
-    
-    def calculate_state_max_value(self) -> dict:
-        """
-        Calcula los valores máximos de cada variable de estado a partir de las transiciones.
-
-        Args:
-            transitions (list of list): Lista de transiciones, donde cada transición es una lista de estados.
-        """
-        # Iterar sobre todas las transiciones
-        vars = {}
-
-        for transition in self.non_final_states + self.final_states:
-            t = transition.replace("qf: ", "")
-            precs = t.split(" -> ")[0]
-            for prec in precs.split(" ^ "):
-                # Dividir cada estado en clave=valor
-                var, vals = from_assign_get_var(prec)
-                if not var in vars.keys(): vars[var] = max(vals)
-                else: vars[var] = max([vars[var]] + vals)
-        
-        return vars
+    def get_state_max_value(self) -> dict:
+        return self.state_max_val
     
     def get_table(self):
         return self.table
     
     def get_bin(self):
         return self.table[self.current_index][0][2]
+    
+    def update_vars(self, action, options):
+        accumulative_prob = 0
+        rand = random.random()
+        for opt in options:
+            if opt[1] == action:
+                accumulative_prob += opt[0]
+                if rand < accumulative_prob:
+                    self.current_index = opt[4]
+                    break

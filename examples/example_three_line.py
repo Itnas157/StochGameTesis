@@ -1,5 +1,15 @@
 name = "three_line"
 init_vars = ["t=1", "a=2", "b=2", "c=2", "d=2", "e=2", "f=2", "g=2", "h=2", "i=2"]
+
+alphas = [0.1]  # Tasa de aprendizaje
+final_alphas_porc = [0.1]
+gammas = [0.9]  # Factor de descuento
+epsilons = [0.9]  # Probabilidad de exploración inicial
+epsilon_decays = [0.001]  # Tasa de decrecimiento de epsilon
+
+smart_sampling_ns = [2**10]
+q_learning_episodes = [2500]
+
 trans_str = """
 --Tres en línea probabilistico
 --Tengo un h0% de probabilidad de poder robar la casilla de otro jugador y 20% de perder el turno
@@ -28,44 +38,26 @@ qf: c=1 ^ e=1 ^ g=1 -> -1
 --t=0
 
 t=0 ^ a=2 -> 1: a=0;t=1 !!!a
-t=0 ^ a=1 -> 0.3: a=0;t=1 | 0.7: t=1 !!!a
 t=0 ^ b=2 -> 1: b=0;t=1 !!!b
-t=0 ^ b=1 -> 0.3: b=0;t=1 | 0.7: t=1 !!!b
 t=0 ^ c=2 -> 1: c=0;t=1 !!!c
-t=0 ^ c=1 -> 0.3: c=0;t=1 | 0.7: t=1 !!!c
 t=0 ^ d=2 -> 1: d=0;t=1 !!!d
-t=0 ^ d=1 -> 0.3: d=0;t=1 | 0.7: t=1 !!!d
 t=0 ^ e=2 -> 1: e=0;t=1 !!!e
-t=0 ^ e=1 -> 0.3: e=0;t=1 | 0.7: t=1 !!!e
 t=0 ^ f=2 -> 1: f=0;t=1 !!!f
-t=0 ^ f=1 -> 0.3: f=0;t=1 | 0.7: t=1 !!!f
 t=0 ^ g=2 -> 1: g=0;t=1 !!!g
-t=0 ^ g=1 -> 0.3: g=0;t=1 | 0.7: t=1 !!!g
 t=0 ^ h=2 -> 1: h=0;t=1 !!!h
-t=0 ^ h=1 -> 0.3: h=0;t=1 | 0.7: t=1 !!!h
 t=0 ^ i=2 -> 1: i=0;t=1 !!!i
-t=0 ^ i=1 -> 0.3: i=0;t=1 | 0.7: t=1 !!!i
 
 --Jugador 2
 --t=1
 
 t=1 ^ a=2 -> 1: a=1;t=0 !!!a
-t=1 ^ a=0 -> 0.3: a=1;t=0 | 0.7: t=0 !!!a
 t=1 ^ b=2 -> 1: b=1;t=0 !!!b
-t=1 ^ b=0 -> 0.3: b=1;t=0 | 0.7: t=0 !!!b
 t=1 ^ c=2 -> 1: c=1;t=0 !!!c
-t=1 ^ c=0 -> 0.3: c=1;t=0 | 0.7: t=0 !!!c
 t=1 ^ d=2 -> 1: d=1;t=0 !!!d
-t=1 ^ d=0 -> 0.3: d=1;t=0 | 0.7: t=0 !!!d
 t=1 ^ e=2 -> 1: e=1;t=0 !!!e
-t=1 ^ e=0 -> 0.3: e=1;t=0 | 0.7: t=0 !!!e
 t=1 ^ f=2 -> 1: f=1;t=0 !!!f
-t=1 ^ f=0 -> 0.3: f=1;t=0 | 0.7: t=0 !!!f
 t=1 ^ g=2 -> 1: g=1;t=0 !!!g
-t=1 ^ g=0 -> 0.3: g=1;t=0 | 0.7: t=0 !!!g
 t=1 ^ h=2 -> 1: h=1;t=0 !!!h
-t=1 ^ h=0 -> 0.3: h=1;t=0 | 0.7: t=0 !!!h
 t=1 ^ i=2 -> 1: i=1;t=0 !!!i
-t=1 ^ i=0 -> 0.3: i=1;t=0 | 0.7: t=0 !!!i
 
 """

@@ -1,5 +1,15 @@
 name = "race"
 init_vars = ["t=0", "x=0", "y=0"]
+
+alphas = [0.1]  # Tasa de aprendizaje
+final_alphas_porc = [0.1]
+gammas = [0.9]  # Factor de descuento
+epsilons = [0.9]  # Probabilidad de exploración inicial
+epsilon_decays = [0.001]  # Tasa de decrecimiento de epsilon
+
+smart_sampling_ns = [2**10]
+q_learning_episodes = [2500]
+
 trans_str = """
 --Juego de carrera entre dos jugadores
 --El primero en llegar a la posición 10 gana

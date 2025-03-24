@@ -2,14 +2,13 @@ import random
 from collections import defaultdict
 
 class Q_table:
-    def __init__(self, alpha, alpha_decay, gamma, epsilon, min_epsilon, epsilon_decay, role) -> None:
+    def __init__(self, alpha, alpha_decay, gamma, epsilon, epsilon_decay, role) -> None:
         self.q_table = defaultdict(lambda: 0.0)
         self.i = 0
         self.epsilon = epsilon  # Probabilidad de exploración
         self.alpha = alpha
         self.apha_decay = alpha_decay
         self.gamma = gamma
-        self.min_epsilon = min_epsilon
         self.epsilon_decay = epsilon_decay
         self.init_index = -1
         self.role = role
@@ -32,8 +31,8 @@ class Q_table:
     def q_iteration(self):
         self.i += 1
         # Decrecer epsilon después de cada iteración para reducir la exploración a medida que el agente aprende
-        self.epsilon = max(self.min_epsilon, self.epsilon - self.epsilon_decay)
-        self.alpha -= max(0, self.apha_decay)
+        self.epsilon = max(0, self.epsilon - self.epsilon_decay)
+        self.alpha = max(0, self.alpha - self.apha_decay)
 
     def get_iteration(self) -> int:
         return self.i
