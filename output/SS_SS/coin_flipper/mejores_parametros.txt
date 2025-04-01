@@ -7,6 +7,6 @@ smart_sampling_n: 1024
 smart_sampling_constant: False
 
 Promedio de victorias:
-SS_Max: 32.74%
-SS_Min: 46.42%
-Draw: 20.84%
+SS_Max: 31.86%
+SS_Min: 47.23%
+Draw: 20.91%

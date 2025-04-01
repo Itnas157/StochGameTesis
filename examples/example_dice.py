@@ -1,6 +1,7 @@
 name = "dice"
 init_vars = ["t=0", "j1=0", "j2=0", "ac=0"]
 
+repeticiones = 25
 alphas = [0.1]  # Tasa de aprendizaje
 final_alphas_porc = [0.1]
 gammas = [0.9]  # Factor de descuento

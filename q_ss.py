@@ -5,100 +5,80 @@ from training_output import TrainingOutput
 from smartsampling.main import Transformer as SmartSampling 
 
 def run(parser: Parser, outputter: TrainingOutput, data: dict, q_learning_role: str, ss_role: str):
-    SMART_SAMPLING_N = data['smart_sampling_n']
-    Q_TABLE_ITERATIONS = data['q_learning_episodes']
-
-    alpha_decay = (data['alpha'] - data['alpha'] * data['final_alpha_porc']) / Q_TABLE_ITERATIONS
+    # Desempaquetar configuraciones
+    ss_n = data['smart_sampling_n']
+    q_iters = data['q_learning_episodes']
+    alpha, gamma, epsilon = data['alpha'], data['gamma'], data['epsilon']
+    alpha_decay = (alpha - alpha * data['final_alpha_porc']) / q_iters
+    reset_q_table = data['q_learning_reset']
+    ss_constant = data['smart_sampling_constant']
     ss_is_maxing = ss_role == "MAX"
 
-    Q_TABLE = Q_table(data['alpha'], alpha_decay, data['gamma'], data['epsilon'], data['epsilon_decay'], q_learning_role)
-    SMART_SAMPLING = SmartSampling(SMART_SAMPLING_N)
+    # Inicializar estructuras
+    q_table = Q_table(alpha, alpha_decay, gamma, epsilon, data['epsilon_decay'], q_learning_role)
+    smart_sampling = SmartSampling(ss_n)
+    smart_sampling.set_state_max_val(parser.get_state_max_value())
+    q_table.init_q_table(parser.get_table(), parser.index_init)
 
-    SMART_SAMPLING.set_state_max_val(parser.get_state_max_value())
-    Q_TABLE.init_q_table(parser.get_table(), parser.index_init)
+    def select_action(t, last_idx, actions, options, z):
+        if (t == 0 and q_learning_role == "MAX") or (t == 1 and ss_role == "MAX"):
+            action = q_table.ready(last_idx, actions)
+        else:
+            action = smart_sampling.choose_action(parser.get_bin(), z, actions)
+        parser.update_vars(action, options)
+        return action
 
-    while SMART_SAMPLING_N > 1:
-        # Correr Q-learning donde Smart Sampling elige con probabilidad 1/N
-        ## Inicializar Q-table
-        if data['q_learning_reset']:
-            Q_TABLE.init_q_table(parser.get_table(), parser.index_init)
-        Q_TABLE.alpha = data['alpha']
+    while ss_n > 1:
+        if reset_q_table:
+            q_table.init_q_table(parser.get_table(), parser.index_init)
+        q_table.alpha = alpha
+        z = smart_sampling.get_random_z()
 
-        z = SMART_SAMPLING.get_random_z()
-
-        i = 0
-        for _ in range(Q_TABLE_ITERATIONS):
-            last_index = parser.current_index
+        # Fase de entrenamiento Q-learning
+        for _ in range(q_iters):
+            last_idx = parser.current_index
             reward = parser.get_reward()
-            actions, options = parser.get_options()
 
             if reward is not None:
                 action = '__None__'
-                reward = float(reward)
-                i = -1
                 parser.reset_vars()
-            elif i < 1000:
-                reward = 0
-                actions, options = parser.get_options()
-                t = parser.get_t()
-
-                if (t == 0 and q_learning_role == "MAX") or (t == 1 and ss_role == "MAX"):
-                    action = Q_TABLE.ready(last_index, actions)
-                    parser.update_vars(action, options)
-
-                elif (t == 1 and q_learning_role == "MAX") or (t==0 and ss_role == "MAX"):
-                    if not data['smart_sampling_constant']:
-                        z = SMART_SAMPLING.get_random_z()
-                    hash_value = SMART_SAMPLING.hash(parser.get_bin(), z)
-                    action = SMART_SAMPLING.choose_action(hash_value, actions)
-                    parser.update_vars(action, options)
             else:
-                reward = 0
-                parser.reset_vars()
-                i = -1
+                actions, options = parser.get_options()
+                reward = 0.0
+                t = parser.get_t()
+                if not ss_constant:
+                    z = smart_sampling.get_random_z()
+                action = select_action(t, last_idx, actions, options, z)
 
-            Q_TABLE.update_column(last_index, action, parser.current_index, reward)
-            i += 1
+            q_table.update_column(last_idx, action, parser.current_index, reward)
 
-        # Correr las N estrategias de SmartSampling con Q-learning entrenado
-        z_reward = []
-        for z in SMART_SAMPLING.zs:
-            reward = None
-            i = 0
+        # Fase de evaluación Smart Sampling
+        z_rewards = []
+        for z in smart_sampling.zs:
             parser.reset_vars()
+            reward = None
 
-            while reward == None and i < 1000:
+            i = 0
+            while reward is None and i < 10000:
                 reward = parser.get_reward()
-                last_index = parser.current_index
+                last_idx = parser.current_index
 
                 if reward is not None:
                     reward = float(reward)
                     break
-                else:
-                    actions, options = parser.get_options()
-                    t = parser.get_t()
-                    if (t==0 and q_learning_role == "MAX") or (t==1 and ss_role=="MAX"):
-                        action = Q_TABLE.choose_action(last_index, actions)
-                        parser.update_vars(action, options)
-                    elif (t==1 and q_learning_role=="MAX") or (t==0 and ss_role=="MAX"):
-                        hash_value = SMART_SAMPLING.hash(parser.get_bin(), z)
-                        action = SMART_SAMPLING.choose_action(hash_value, actions)
-                        parser.update_vars(action, options)
-                
+                actions, options = parser.get_options()
+                t = parser.get_t()
+                action = select_action(t, last_idx, actions, options, z)
                 i += 1
 
-            if reward == None: reward = 0
-            z_reward.append({'z': z, 'r': reward})
+            if reward is None: reward = 0
+            z_rewards.append({'z': z, 'r': reward or 0})
 
-        # Actualizar Smart Sampling
-        ## Ordenamos z_reward por recompensa
-        random.shuffle(z_reward)
-        z_reward = sorted(z_reward, key=lambda x: x['r'], reverse=ss_is_maxing)
-        SMART_SAMPLING_N = SMART_SAMPLING_N // 2
-        z_reward = z_reward[:SMART_SAMPLING_N]
+        # Actualización de Smart Sampling
+        random.shuffle(z_rewards)  # Evita sesgos de empate
+        z_rewards.sort(key=lambda x: x['r'], reverse=ss_is_maxing)
+        ss_n //= 2
+        smart_sampling.update_zs([entry['z'] for entry in z_rewards[:ss_n]])
 
-        z_keys = [z['z'] for z in z_reward]
-        SMART_SAMPLING.update_zs(z_keys)
-
-    assert SMART_SAMPLING_N == 1 and len(SMART_SAMPLING.zs) == 1
-    return outputter.run_test(Q_TABLE, SMART_SAMPLING, parser, data, q_learning_role, ss_role)
+    assert ss_n == 1 and len(smart_sampling.zs) == 1
+    return outputter.run_test(q_table, smart_sampling, parser, data, q_learning_role, ss_role)

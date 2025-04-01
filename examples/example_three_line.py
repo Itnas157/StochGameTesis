@@ -1,6 +1,7 @@
 name = "three_line"
 init_vars = ["t=1", "a=2", "b=2", "c=2", "d=2", "e=2", "f=2", "g=2", "h=2", "i=2"]
 
+repeticiones = 25
 alphas = [0.1]  # Tasa de aprendizaje
 final_alphas_porc = [0.1]
 gammas = [0.9]  # Factor de descuento

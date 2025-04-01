@@ -21,10 +21,10 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
 
         for z1 in SS1.zs:
             reward = None
-            i = 0
             parser.reset_vars()
 
-            while reward == None and i < 1000:
+            i = 0
+            while reward is None and i < 10000:
                 reward = parser.get_reward()
 
                 if reward is not None:
@@ -33,21 +33,18 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
                 else:
                     actions, options = parser.get_options()
                     if parser.get_t() == 0:
-                        hash_value = SS1.hash(parser.get_bin(), z1)
-                        action = SS2.choose_action(hash_value, actions)
+                        action = SS1.choose_action(parser.get_bin(), z1, actions)
                         parser.update_vars(action, options)
                     elif parser.get_t() == 1:
-                        if not data['smart_sampling_constant']:
-                            z2 = SS2.get_random_z()
-                        hash_value = SS2.hash(parser.get_bin(), z2)
-                        action = SS2.choose_action(hash_value, actions)
+                        if not data['smart_sampling_constant']: z2 = SS2.get_random_z()
+                        action = SS2.choose_action(parser.get_bin(), z2, actions)
                         parser.update_vars(action, options)
                     else:
                         assert True
                 
                 i += 1
-
-            if reward == None: reward = 0
+                
+            if reward is None: reward = 0
             z_reward.append({'z': z1, 'r': reward})
 
         # Actualizar Smart Sampling
@@ -67,10 +64,10 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
 
         for z2 in SS2.zs:
             reward = None
-            i = 0
             parser.reset_vars()
 
-            while reward == None and i < 1000:
+            i = 0
+            while reward is None and i < 10000:
                 reward = parser.get_reward()
 
                 if reward is not None:
@@ -79,21 +76,18 @@ def run(parser: Parser, outputter: TrainingOutput, data: dict):
                 else:
                     actions, options = parser.get_options()
                     if parser.get_t() == 0:
-                        if not data['smart_sampling_constant']:
-                            z1 = SS1.get_random_z()
-                        hash_value = SS1.hash(parser.get_bin(), z1)
-                        action = SS1.choose_action(hash_value, actions)
+                        if not data['smart_sampling_constant']: z1 = SS1.get_random_z()
+                        action = SS1.choose_action(parser.get_bin(), z1, actions)
                         parser.update_vars(action, options)
                     elif parser.get_t() == 1:
-                        hash_value = SS2.hash(parser.get_bin(), z2)
-                        action = SS2.choose_action(hash_value, actions)
+                        action = SS2.choose_action(parser.get_bin(), z2, actions)
                         parser.update_vars(action, options)
                     else:
                         assert True
-                
+            
                 i += 1
 
-            if reward == None: reward = 0
+            if reward is None: reward = 0
             z_reward.append({'z': z2, 'r': reward})
 
         # Actualizar Smart Sampling

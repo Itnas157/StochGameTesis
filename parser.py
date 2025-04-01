@@ -61,8 +61,6 @@ def expand_ranges(predicate):
     var, value = predicate.split("=")
     return [(var, [int(value)])]
 
-
-
 def from_assign_get_var(assign):
     split = assign.split("=")
     assert(len(split) == 2)
@@ -185,7 +183,7 @@ def create_parser_table(states, non_final_states, final_states, init_vars, bins)
 
             tuples.append(state_entries)
 
-    rewards = []
+    rewards = [0.0]
     for t in tuples:
         if t[0][0] == -1 and not t[0][1] in rewards: rewards.append(t[0][1])
 
@@ -195,7 +193,7 @@ def create_parser_table(states, non_final_states, final_states, init_vars, bins)
             poss = tuples[i][j]
             if poss[0] == -1:
                 next_index = rewards.index(poss[1])
-                tuples[i][j] = poss + (next_index,)
+                tuples[i][j] = poss + (-1 -next_index,)
 
 
     state_index_map = {frozenset(tuples[t][0][2].items()): t for t in range(len(tuples))}
@@ -250,9 +248,11 @@ def create_parser_table(states, non_final_states, final_states, init_vars, bins)
             pointing = tuples[index][j][7]
             
             # Validar si `pointing` está dentro del rango de `rewards`
-            if pointing >= len(rewards):
+            if pointing >= 0:
                 pointing = pointing_map.get(frozenset(tuples[pointing][0][2].items()), pointing)
-            
+            else:
+                pointing = -1 -pointing
+
             # Construir nueva tupla optimizada
             new_poss.append((poss[0], poss[1], poss[2], poss[3], pointing))
         

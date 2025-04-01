@@ -36,9 +36,9 @@ class Transformer:
         self.state_max_val = max_values
         
     def update_zs(self, z_keys):
-        self.zs = z_keys
-
-    def hash(self, state, z):
+        self.zs = z_keys   
+    
+    def choose_action(self, state, z, actions):
         # Convertir z a binario con padding basado en max_z
         z_bin = format(z, f'0{self.max_z.bit_length()}b')
         
@@ -48,14 +48,7 @@ class Transformer:
         # Usar hashlib para generar un hash determinístico
         hash_object = hashlib.sha256(h.encode())  # Genera un hash SHA-256
         hash_value = int(hash_object.hexdigest(), 16)  # Convertir el hash a entero
-        
-        # Retornar el hash como entero
-        return hash_value
-    
-    def choose_action(self, hash_value, actions):
-        """
-        Elige la accion en base al hash_value
-        """
+
         return actions[hash_value % len(actions)]
     
     def get_random_z(self):

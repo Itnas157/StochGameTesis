@@ -16,9 +16,8 @@ import q_ss
 import ss_ss
 
 
-for ex in [ex_three_line, ex_race, ex_three_prob, ex_coin_flipper]:
-    complete = 2 * 2 * len(ex.alphas) * len(ex.final_alphas_porc) * len(ex.gammas) * len(ex.epsilons) * len(ex.epsilon_decays) * len(ex.smart_sampling_ns) * len(ex.q_learning_episodes)
-    print("Completitud esperada:", complete)
+for ex in [ex_basic_loop, ex_race, ex_three_prob, ex_coin_flipper, ex_basic, ex_three_line]:
+    complete = 3 * 2 * 2 * ex.repeticiones * len(ex.alphas) * len(ex.final_alphas_porc) * len(ex.gammas) * len(ex.epsilons) * len(ex.epsilon_decays) * len(ex.smart_sampling_ns) * len(ex.q_learning_episodes)
     print("Corriendo ejemplo", ex.name)
     parser = Parser(ex.trans_str, ex.init_vars)
     bins = [state_to_bin(comb, parser.get_state_max_value()) for comb in parser.all_combinations]
@@ -35,18 +34,19 @@ for ex in [ex_three_line, ex_race, ex_three_prob, ex_coin_flipper]:
         if roles == ("SS", "SS"):
             existing_results = {
                 (
-                    r['smart_sampling_n'], r['smart_sampling_constant']
+                    r['smart_sampling_n'], r['smart_sampling_constant'], r['repeticiones']
                 ) 
                 for r in results
             }
 
-            for smart_sampling_n in ex.smart_sampling_ns:
+            for smart_sampling_n, repeticiones in product(ex.smart_sampling_ns, range(ex.repeticiones)):
                 for smart_sampling_constant in [True, False]:
                     data = {
                         'smart_sampling_constant': smart_sampling_constant,
                         "smart_sampling_n": smart_sampling_n,
+                        'repeticiones': repeticiones
                     }
-                    key = (data["smart_sampling_n"], data["smart_sampling_constant"])
+                    key = (data["smart_sampling_n"], data["smart_sampling_constant"], data["repeticiones"])
                     if key not in existing_results:
                         will_test.append(data)
 
@@ -54,20 +54,21 @@ for ex in [ex_three_line, ex_race, ex_three_prob, ex_coin_flipper]:
             # Combinaciones completas de parámetros para Q-learning + SS
             existing_results = {
                 (
-                    r['alpha'], r['final_alpha_porc'], r['gamma'], r['epsilon'], r['epsilon_decay'], r['smart_sampling_n'], 
+                    r['repeticiones'], r['alpha'], r['final_alpha_porc'], r['gamma'], r['epsilon'], r['epsilon_decay'], r['smart_sampling_n'], 
                     r['q_learning_episodes'], r['q_learning_reset'], r['smart_sampling_constant']
                 ) 
                 for r in results
             }
 
             param_combinations = product(
-                ex.alphas, ex.final_alphas_porc, ex.gammas, ex.epsilons, 
+                range(ex.repeticiones), ex.alphas, ex.final_alphas_porc, ex.gammas, ex.epsilons,
                 ex.epsilon_decays, ex.smart_sampling_ns, ex.q_learning_episodes
             )
-            for alpha, final_alpha_porc, gamma, epsilon, epsilon_decay, smart_sampling_n, q_learning_episode in param_combinations:
+            for repeticiones, alpha, final_alpha_porc, gamma, epsilon, epsilon_decay, smart_sampling_n, q_learning_episode in param_combinations:
                 for q_learning_reset in [True, False]:
                     for smart_sampling_constant in [True, False]:
                         data = {
+                            'repeticiones': repeticiones,
                             'q_learning_reset': q_learning_reset,
                             'smart_sampling_constant': smart_sampling_constant,
                             "alpha": alpha,
@@ -79,6 +80,7 @@ for ex in [ex_three_line, ex_race, ex_three_prob, ex_coin_flipper]:
                             "q_learning_episodes": q_learning_episode
                         }
                         key = (
+                            repeticiones,
                             alpha, final_alpha_porc, gamma, epsilon,
                             epsilon_decay, smart_sampling_n, q_learning_episode,
                             q_learning_reset, smart_sampling_constant
@@ -88,22 +90,23 @@ for ex in [ex_three_line, ex_race, ex_three_prob, ex_coin_flipper]:
 
         # Ejecutar y guardar por batches
         batch_results = []
-        total_tests = complete - len(will_test)
         i = 1
         for data in will_test:
-            for _ in range(25):
-                match roles:
-                    case ("Q", "SS"):batch_results.append(q_ss.run(parser, OUTPUTTER, data.copy(), "MAX", "MIN")); i += 1
-                    case ("SS", "Q"): batch_results.append(q_ss.run(parser, OUTPUTTER, data.copy(), "MIN", "MAX")); i += 1
-                    case ("SS", "SS"):batch_results.append(ss_ss.run(parser, OUTPUTTER, data.copy())); i += 1
+            match roles:
+                case ("Q", "SS"):batch_results.append(q_ss.run(parser, OUTPUTTER, data.copy(), "MAX", "MIN")); i += 1
+                case ("SS", "Q"): batch_results.append(q_ss.run(parser, OUTPUTTER, data.copy(), "MIN", "MAX")); i += 1
+                case ("SS", "SS"): batch_results.append(ss_ss.run(parser, OUTPUTTER, data.copy())); i += 1
 
-                if i % 10 == 0:
-                    results.extend(batch_results)
-                    OUTPUTTER.save_json(results)
-                    batch_results.clear()
-                    print(f"Progreso: {100 * i / (len(will_test)*25):.2f}%")
+            if i % 10 == 0:
+                results.extend(batch_results)
+                OUTPUTTER.save_json(results)
+                batch_results.clear()
+                print(f"{ex.name} {roles} Progreso: {100 * i / (len(will_test)):.2f}%")
     
+        results.extend(batch_results)
         OUTPUTTER.save_json(results)
+        batch_results.clear()
+        print(f"{ex.name} {roles} Completado")
 
         Grap = Graphic(OUTPUT_FOLDER)
         Grap.graph(is_ss_ss=(roles == ('SS', 'SS')))

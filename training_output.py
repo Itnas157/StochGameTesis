@@ -27,8 +27,8 @@ class TrainingOutput:
             reward = None
             parser.reset_vars()
     
-            j = 0
-            while reward == None and j < 1000:
+            i = 0
+            while reward is None and i < 10000:
                 reward = parser.get_reward()
                 last_index = parser.current_index
                 
@@ -40,15 +40,14 @@ class TrainingOutput:
                         action = q_table.ready(last_index, actions)
                         parser.update_vars(action, options)
                     elif (t==1 and q_learning_role=="MAX") or (t==0 and ss_role=="MAX"):
-                        hash_value = smartsampling.hash(parser.get_bin(), z)
-                        action = smartsampling.choose_action(hash_value, actions)
+                        action = smartsampling.choose_action(parser.get_bin(), z, actions)
                         parser.update_vars(action, options)
                     else:
                         print("Turno invalido:", parser.get_var("t"))
                         assert True
-                
-                j += 1
-            
+
+                i+=1
+
             
             if (reward == 1 and q_learning_role == "MAX") or (reward == -1 and ss_role =="MAX"):
                 result_q += 1
@@ -76,8 +75,8 @@ class TrainingOutput:
             reward = None
             parser.reset_vars()
     
-            j = 0
-            while reward == None and j < 1000:
+            i = 0
+            while reward is None and i < 10000:
                 reward = parser.get_reward()
                 
                 if reward is not None: reward = float(reward); break
@@ -85,18 +84,16 @@ class TrainingOutput:
                     actions, options = parser.get_options()
 
                     if parser.get_t() == 0:
-                        hash_value = ss1.hash(parser.get_bin(), z1)
-                        action = ss1.choose_action(hash_value, actions)
+                        action = ss1.choose_action(parser.get_bin(), z1, actions)
                         parser.update_vars(action, options)
                     elif parser.get_t() == 1:
-                        hash_value = ss2.hash(parser.get_bin(), z2)
-                        action = ss2.choose_action(hash_value, actions)
+                        action = ss2.choose_action(parser.get_bin(), z2, actions)
                         parser.update_vars(action, options)
                     else:
                         print("Turno invalido:", parser.get_var("t"))
                         assert True
                 
-                j += 1
+                i += 1
             
             
             if reward == 1: result_max += 1

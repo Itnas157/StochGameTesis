@@ -1,6 +1,7 @@
 name = "race"
 init_vars = ["t=0", "x=0", "y=0"]
 
+repeticiones = 25
 alphas = [0.1]  # Tasa de aprendizaje
 final_alphas_porc = [0.1]
 gammas = [0.9]  # Factor de descuento
