@@ -5,7 +5,9 @@ import examples.example_race as ex_race
 import examples.example_three_line as ex_three_line
 import examples.example_three_line_prob as ex_three_prob
 import examples.example_basic as ex_basic
+import examples.example_block as ex_block
 import examples.example_basic_loop as ex_basic_loop
+import examples.example_blackjack as ex_blackjack
 
 from parser import Parser
 from smartsampling.main import state_to_bin
@@ -16,14 +18,13 @@ import q_ss
 import ss_ss
 
 
-for ex in [ex_basic_loop, ex_race, ex_three_prob, ex_coin_flipper, ex_basic, ex_three_line]:
-    complete = 3 * 2 * 2 * ex.repeticiones * len(ex.alphas) * len(ex.final_alphas_porc) * len(ex.gammas) * len(ex.epsilons) * len(ex.epsilon_decays) * len(ex.smart_sampling_ns) * len(ex.q_learning_episodes)
+for ex in [ex_three_line, ex_basic, ex_blackjack, ex_block, ex_basic_loop, ex_race, ex_coin_flipper]:
     print("Corriendo ejemplo", ex.name)
     parser = Parser(ex.trans_str, ex.init_vars)
     bins = [state_to_bin(comb, parser.get_state_max_value()) for comb in parser.all_combinations]
     parser.create_table(bins)
 
-    for roles in [("Q", "SS"), ("SS", "Q"), ("SS", "SS")]:
+    for roles in [("SS", "Q"), ("Q", "SS")]:
         OUTPUT_FOLDER = f"output/{roles[0]}_{roles[1]}/{ex.name}"
         OUTPUTTER = TrainingOutput(OUTPUT_FOLDER)
 
@@ -54,17 +55,17 @@ for ex in [ex_basic_loop, ex_race, ex_three_prob, ex_coin_flipper, ex_basic, ex_
             # Combinaciones completas de parámetros para Q-learning + SS
             existing_results = {
                 (
-                    r['repeticiones'], r['alpha'], r['final_alpha_porc'], r['gamma'], r['epsilon'], r['epsilon_decay'], r['smart_sampling_n'], 
+                    r['repeticiones'], r['alpha'], r['gamma'], r['epsilon'], r['smart_sampling_n'], 
                     r['q_learning_episodes'], r['q_learning_reset'], r['smart_sampling_constant']
                 ) 
                 for r in results
             }
 
             param_combinations = product(
-                range(ex.repeticiones), ex.alphas, ex.final_alphas_porc, ex.gammas, ex.epsilons,
-                ex.epsilon_decays, ex.smart_sampling_ns, ex.q_learning_episodes
+                range(ex.repeticiones), ex.alphas, ex.gammas, ex.epsilons,
+                ex.smart_sampling_ns, ex.q_learning_episodes
             )
-            for repeticiones, alpha, final_alpha_porc, gamma, epsilon, epsilon_decay, smart_sampling_n, q_learning_episode in param_combinations:
+            for repeticiones, alpha, gamma, epsilon, smart_sampling_n, q_learning_episode in param_combinations:
                 for q_learning_reset in [True, False]:
                     for smart_sampling_constant in [True, False]:
                         data = {
@@ -72,17 +73,15 @@ for ex in [ex_basic_loop, ex_race, ex_three_prob, ex_coin_flipper, ex_basic, ex_
                             'q_learning_reset': q_learning_reset,
                             'smart_sampling_constant': smart_sampling_constant,
                             "alpha": alpha,
-                            "final_alpha_porc": final_alpha_porc,
                             "gamma": gamma,
                             "epsilon": epsilon,
-                            "epsilon_decay": epsilon_decay,
                             "smart_sampling_n": smart_sampling_n,
                             "q_learning_episodes": q_learning_episode
                         }
                         key = (
                             repeticiones,
-                            alpha, final_alpha_porc, gamma, epsilon,
-                            epsilon_decay, smart_sampling_n, q_learning_episode,
+                            alpha, gamma, epsilon,
+                            smart_sampling_n, q_learning_episode,
                             q_learning_reset, smart_sampling_constant
                         )
                         if key not in existing_results:

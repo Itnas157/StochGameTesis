@@ -1,0 +1,21 @@
+Mejores valores promedio para maximizar Q-learning:
+repeticiones: 0
+alpha: 0.1
+gamma: 1.0
+epsilon: 0.4
+smart_sampling_n: 4096
+q_learning_episodes: 10000
+Draw: 0.0
+
+Mejores valores promedio para maximizar SmartSampling:
+repeticiones: 0
+alpha: 0.8
+gamma: 0.9
+epsilon: 0.7
+smart_sampling_n: 1024
+q_learning_episodes: 100
+Draw: 0.0
+
+Promedio de victorias:
+Q-learning: 64.40%
+SmartSampling: 35.60%

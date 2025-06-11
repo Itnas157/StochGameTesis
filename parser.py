@@ -16,8 +16,6 @@ def final_states_reward(transitions, state):
 
         # Validar si el estado actual cumple con todos los predicados
         if all(state.get(var) in valid_values for var, valid_values in expanded_predicates.items()):
-            if right in {"-1", "1"}:  # Salida temprana si se encuentra ambos valores
-                return 0 if "-1" in expanded_predicates and "1" in expanded_predicates else int(right)
             return right
 
     return None
@@ -299,6 +297,7 @@ class Parser:
     def create_table(self, bins):
         self.table, self.index_init = create_parser_table(self.all_combinations, self.non_final_states, self.final_states, self.init_vars, bins)
         self.current_index = self.index_init
+        self.bin_to_state = {bins[i]: self.all_combinations[i] for i in range(len(bins))}
 
     def get_options(self):
         actions = []
@@ -307,7 +306,9 @@ class Parser:
         return actions, self.table[self.current_index]
 
     def get_reward(self):
-        return self.table[self.current_index][0][1] if self.table[self.current_index][0][0] == -1 else None
+        r = self.table[self.current_index][0][1] if self.table[self.current_index][0][0] == -1 else None
+        #if r is not None: print("Reward:", r)
+        return r
 
     def reset_vars(self):
         self.current_index = self.index_init
@@ -332,4 +333,5 @@ class Parser:
                 accumulative_prob += opt[0]
                 if rand < accumulative_prob:
                     self.current_index = opt[4]
+                    #print(self.bin_to_state[opt[2]], opt[1])
                     break

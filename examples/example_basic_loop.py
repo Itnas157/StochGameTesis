@@ -2,14 +2,12 @@ name = "basic_loop"
 init_vars = ["t=0", "s=0", "r=0"]
 
 repeticiones = 25
-alphas = [0.1]  # Tasa de aprendizaje
-final_alphas_porc = [0.1]
-gammas = [0.9]  # Factor de descuento
+alphas = [0.5]  # Tasa de aprendizaje
+gammas = [1]  # Factor de descuento
 epsilons = [0.9]  # Probabilidad de exploración inicial
-epsilon_decays = [0.001]  # Tasa de decrecimiento de epsilon
 
 smart_sampling_ns = [2**10]
-q_learning_episodes = [2500]
+q_learning_episodes = [2046]
 
 trans_str = """
 --Victoria/Derrota

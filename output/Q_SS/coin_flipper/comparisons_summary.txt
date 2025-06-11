@@ -1,0 +1,44 @@
+Combination: QL_Reset=True, SS_Const=True
+  Avg Q-learning: 46.33%
+  Avg SmartSampling: 53.67%
+  Max Q-learning: 53.76%
+  Max SmartSampling: 61.62%
+  Min Q-learning: 38.38%
+  Min SmartSampling: 46.24%
+  Desviación Q-learning: 3.25
+  Desviación SmartSampling: 3.25
+  Avg Draw: 0.00%
+
+Combination: QL_Reset=True, SS_Const=False
+  Avg Q-learning: 45.66%
+  Avg SmartSampling: 54.34%
+  Max Q-learning: 55.66%
+  Max SmartSampling: 61.55%
+  Min Q-learning: 38.45%
+  Min SmartSampling: 44.34%
+  Desviación Q-learning: 3.64
+  Desviación SmartSampling: 3.64
+  Avg Draw: 0.00%
+
+Combination: QL_Reset=False, SS_Const=True
+  Avg Q-learning: 44.92%
+  Avg SmartSampling: 55.08%
+  Max Q-learning: 53.48%
+  Max SmartSampling: 59.40%
+  Min Q-learning: 40.60%
+  Min SmartSampling: 46.52%
+  Desviación Q-learning: 3.49
+  Desviación SmartSampling: 3.49
+  Avg Draw: 0.00%
+
+Combination: QL_Reset=False, SS_Const=False
+  Avg Q-learning: 45.93%
+  Avg SmartSampling: 54.07%
+  Max Q-learning: 52.36%
+  Max SmartSampling: 58.35%
+  Min Q-learning: 41.65%
+  Min SmartSampling: 47.64%
+  Desviación Q-learning: 2.95
+  Desviación SmartSampling: 2.95
+  Avg Draw: 0.00%
+

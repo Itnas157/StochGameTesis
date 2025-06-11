@@ -1,15 +1,13 @@
 name = "three_line_prob"
-init_vars = ["t=1", "a=2", "b=2", "c=2", "d=2", "e=2", "f=2", "g=2", "h=2", "i=2"]
+init_vars = ["t=0", "a=2", "b=2", "c=2", "d=2", "e=2", "f=2", "g=2", "h=2", "i=2"]
 
 repeticiones = 25
-alphas = [0.1]  # Tasa de aprendizaje
-final_alphas_porc = [0.1]
-gammas = [0.9]  # Factor de descuento
+alphas = [0.5]  # Tasa de aprendizaje
+gammas = [1]  # Factor de descuento
 epsilons = [0.9]  # Probabilidad de exploración inicial
-epsilon_decays = [0.001]  # Tasa de decrecimiento de epsilon
 
 smart_sampling_ns = [2**10]
-q_learning_episodes = [2500]
+q_learning_episodes = [2046]
 
 trans_str = """
 --Tres en línea probabilistico

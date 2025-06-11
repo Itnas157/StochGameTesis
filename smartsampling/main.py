@@ -30,7 +30,7 @@ class Transformer:
     def __init__(self, max_z) -> None:
         self.state_max_val = {}
         self.max_z = max_z
-        self.zs= [i for i in range(max_z)]
+        self.zs= [random.randint(0, 2**16-1) for _ in range(max_z)]
 
     def set_state_max_val(self, max_values):
         self.state_max_val = max_values
@@ -48,10 +48,8 @@ class Transformer:
         # Usar hashlib para generar un hash determinístico
         hash_object = hashlib.sha256(h.encode())  # Genera un hash SHA-256
         hash_value = int(hash_object.hexdigest(), 16)  # Convertir el hash a entero
-
         return actions[hash_value % len(actions)]
-    
+
     def get_random_z(self):
         return random.choice(self.zs)
-
 

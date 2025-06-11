@@ -2,44 +2,52 @@ import random
 from collections import defaultdict
 
 class Q_table:
-    def __init__(self, alpha, alpha_decay, gamma, epsilon, epsilon_decay, role) -> None:
+    def __init__(self, alpha, gamma, epsilon, role) -> None:
         self.q_table = defaultdict(lambda: 0.0)
+        self.actions_by_state = defaultdict(set)
+
         self.i = 0
+
         self.epsilon = epsilon  # Probabilidad de exploración
-        self.alpha = alpha
-        self.apha_decay = alpha_decay
+        self.epsilon_0 = epsilon  # Valor inicial de epsilon
+
+        self.alpha = alpha  # Tasa de aprendizaje
+        self.alpha_0 = alpha
+
         self.gamma = gamma
-        self.epsilon_decay = epsilon_decay
+
         self.init_index = -1
         self.role = role
 
 
     def init_q_table(self, posibilities, init_index):
         """
-        Inicializa la tabla Q con valores aleatorios para cada par estado-acción.
+        Inicializa la tabla Q con valores 0 para cada par estado-acción.
         """
         for i, states in enumerate(posibilities):
             for state in states:
                 if len(state) == 2 and state[0] == -1:
                     self.q_table[(i, "__None__")] = state[1]
+                    self.actions_by_state[i].add("__None__")
                 else:
                     assert len(state) == 5
-                    self.q_table.setdefault((i, state[1]), 0.0)  # Evita duplicados
+                    self.q_table.setdefault((i, state[1]), 0.0)
+                    self.actions_by_state[i].add(state[1])
 
         self.init_index = init_index
     
     def q_iteration(self):
         self.i += 1
         # Decrecer epsilon después de cada iteración para reducir la exploración a medida que el agente aprende
-        self.epsilon = max(0, self.epsilon - self.epsilon_decay)
-        self.alpha = max(0, self.alpha - self.apha_decay)
+        self.epsilon = self.epsilon_0 / (1 + (1/2000) * self.i)  # Decrecimiento de epsilon
+        self.alpha = self.alpha_0 / (1 + (1/2000) * self.i)  # Decrecimiento de la tasa de aprendizaje
 
     def get_iteration(self) -> int:
         return self.i
 
     def get_actions(self, index):
-        """Devuelve todas las acciones posibles para un estado dado."""
-        return [a for (s, a) in self.q_table.keys() if s == index]
+        return list(self.actions_by_state.get(index, []))
+
 
     def update_column(self, index, action, next_state, reward):
         key = (index, action)
@@ -79,7 +87,7 @@ class Q_table:
     def convergence(self, index):
         if self.role == "MAX": value = max((self.q_table.get((index, a), 0.0) for a in self.get_actions(index)), default=0.0)
         else: value = min((self.q_table.get((index, a), 0.0) for a in self.get_actions(index)), default=0.0)
-        print(f"Convergencia en estado {index}: {value:.4f}")
+        return value
     
     def ready(self, index, actions):
         # Explotación: elegir la mejor acción según la tabla Q

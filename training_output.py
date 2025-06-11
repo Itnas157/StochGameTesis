@@ -27,13 +27,19 @@ class TrainingOutput:
             reward = None
             parser.reset_vars()
     
+            historial=[]
+            
             i = 0
-            while reward is None and i < 10000:
+            while reward is None and i < 100000:
                 reward = parser.get_reward()
                 last_index = parser.current_index
-                
-                if reward is not None: reward = float(reward); break 
+
+                if reward is not None:
+                    reward = float(reward)
+                    historial.append(reward)
+                    break 
                 else:
+                    historial.append(parser.bin_to_state[parser.get_bin()])
                     actions, options = parser.get_options()
                     t = parser.get_t()
                     if (t==0 and q_learning_role=="MAX") or (t==1 and ss_role=="MAX"):
@@ -44,16 +50,18 @@ class TrainingOutput:
                         parser.update_vars(action, options)
                     else:
                         print("Turno invalido:", parser.get_var("t"))
-                        assert True
+                        assert False
+                    historial.append(action)
+                i += 1
 
-                i+=1
-
-            
             if (reward == 1 and q_learning_role == "MAX") or (reward == -1 and ss_role =="MAX"):
                 result_q += 1
             elif (reward == -1 and q_learning_role == "MAX") or (reward == 1 and ss_role=="MAX"):
                 result_ss += 1
-            else: result_draw += 1
+            else:
+                result_draw += 1
+                print("FALLO: ", reward, "historial:", historial)
+                assert False
 
         data["Q-learning"] = result_q/(ROUNDS//100)
         data["SmartSampling"] = result_ss/(ROUNDS//100)
